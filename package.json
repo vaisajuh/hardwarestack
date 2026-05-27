@@ -9,12 +9,17 @@
     "lint": "eslint",
     "db:seed": "npx tsx prisma/seed.ts",
     "db:migrate": "prisma migrate dev",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "scraper:cpus": "npx tsx scripts/scraper/ingest.ts cpus",
+    "scraper:gpus": "npx tsx scripts/scraper/ingest.ts gpus",
+    "scraper:amazon": "npx tsx scripts/scraper/ingest.ts amazon",
+    "scraper:all": "npx tsx scripts/scraper/ingest.ts all"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.99.0",
     "@base-ui/react": "^1.5.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
@@ -40,6 +45,7 @@
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "playwright": "^1.60.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.3",
     "typescript": "^5"
