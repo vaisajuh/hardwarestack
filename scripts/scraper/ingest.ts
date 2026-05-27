@@ -22,7 +22,7 @@ import { normalizeCpus, normalizeGpus } from "./normalizer";
 import { prisma } from "./db";
 import type { NormalizedCpu, NormalizedGpu } from "./types";
 
-const CACHE_DIR = path.join(import.meta.dirname, ".cache");
+const CACHE_DIR = path.join(__dirname, ".cache");
 
 function cacheRead<T>(file: string): T | null {
   const p = path.join(CACHE_DIR, file);
@@ -210,10 +210,14 @@ async function runAmazon() {
 
 const MODE = process.argv[2] ?? "all";
 
-try {
-  if (MODE === "cpus" || MODE === "all") await runCpus();
-  if (MODE === "gpus" || MODE === "all") await runGpus();
-  if (MODE === "amazon" || MODE === "all") await runAmazon();
-} finally {
-  await prisma.$disconnect();
+async function main() {
+  try {
+    if (MODE === "cpus" || MODE === "all") await runCpus();
+    if (MODE === "gpus" || MODE === "all") await runGpus();
+    if (MODE === "amazon" || MODE === "all") await runAmazon();
+  } finally {
+    await prisma.$disconnect();
+  }
 }
+
+main().catch((err) => { console.error(err); process.exit(1); });

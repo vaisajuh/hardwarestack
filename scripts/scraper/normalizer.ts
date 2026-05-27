@@ -13,25 +13,28 @@ const client = new Anthropic();
 // multiCoreScore  ≈ passmarkMultiCore   × 0.52   (i9-14900K: 81000 → 42000)
 // rasterScore     ≈ passmarkGpu         × 0.51   (RTX 4090: 35000 → 18000)
 
-const CPU_SYSTEM = `You are a PC hardware database expert. Given a batch of CPU entries from PassMark benchmarks, classify each one and return structured JSON.
+const CPU_SYSTEM = `You are a PC hardware database expert. Given a batch of CPU entries scraped from PassMark's benchmark chart, classify each one and return structured JSON.
+
+WHAT WE HAVE: CPU name and PassMark multi-core score (CPU Mark). There is NO single-thread score in the raw data — estimate it from your knowledge of each model.
 
 RULES:
 - Include ONLY mainstream desktop gaming CPUs: Intel Core i3/i5/i7/i9 or AMD Ryzen 3/5/7/9
-- SKIP: server (Xeon, EPYC, Threadripper Pro), mobile (U/H/HX suffix without desktop context), embedded, APU-only, or obscure OEM CPUs
+- SKIP: server (Xeon, EPYC, Threadripper Pro), mobile (U/H/HX suffix without clear desktop context), embedded, APU-only, very old (pre-2017), obscure OEM variants
 - Vendor: INTEL or AMD only
 - Tier:
-  - ENTRY:       i3 / Ryzen 3 / budget i5 or Ryzen 5 (passmark single < 3000)
-  - MID:         mainstream i5 / Ryzen 5
-  - HIGH:        i7 / Ryzen 7 / top Ryzen 5
+  - ENTRY:       i3 / Ryzen 3 / budget older i5 or Ryzen 5
+  - MID:         mainstream i5 / Ryzen 5 (current or recent gen)
+  - HIGH:        i7 / Ryzen 7 / strong i5
   - ULTRA:       i9 / Ryzen 9 (non-flagship)
-  - ENTHUSIAST:  flagship i9 or Ryzen 9 (current gen top)
-- Score normalisation (multiply passmark values by these factors):
-  - singleCoreScore = round(passmarkSingle × 0.57)   [range ~1400–2500]
-  - multiCoreScore  = round(passmarkMulti  × 0.52)   [range ~8000–45000]
-- Fill in best-effort specs (cores, threads, clocks, socket) from your knowledge
+  - ENTHUSIAST:  flagship i9 / Ryzen 9 (current top-of-range)
+- Score normalisation:
+  - multiCoreScore  = round(passmarkMulti × 0.52)   [i9-14900K: 81000 → 42000]
+  - singleCoreScore = estimate from your knowledge, range 1400–2500
+    Examples: i9-14900K → 2400, Ryzen 9 7950X → 2100, i7-14700K → 2200, Ryzen 5 5600X → 1650, i3-13100 → 1600
+- Fill in cores, threads, clocks, socket from your knowledge of each model
 - Return null for entries that should be skipped
 
-OUTPUT: JSON array, one element per input item, either a NormalizedCpu object or null.
+OUTPUT: JSON array, one element per input item — NormalizedCpu object or null.
 
 NormalizedCpu schema:
 {
@@ -118,7 +121,7 @@ export async function normalizeCpus(
     const userContent = batch
       .map(
         (e, idx) =>
-          `${idx + 1}. "${e.name}" — Multi: ${e.multiCoreScore}, Single: ${e.singleThreadScore}`
+          `${idx + 1}. "${e.name}" — PassMark CPU Mark: ${e.multiCoreScore}`
       )
       .join("\n");
 

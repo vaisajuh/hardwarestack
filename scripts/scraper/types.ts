@@ -1,12 +1,13 @@
 export interface RawCpuEntry {
   name: string;
   multiCoreScore: number;
-  singleThreadScore: number;
+  rank: number; // chart position — lower is better
 }
 
 export interface RawGpuEntry {
   name: string;
   score: number;
+  rank: number; // chart position — lower is better
 }
 
 export type Tier = "ENTRY" | "MID" | "HIGH" | "ULTRA" | "ENTHUSIAST";
@@ -21,8 +22,8 @@ export interface NormalizedCpu {
   boostClockGhz: number;
   socket: string;
   tier: Tier;
-  singleCoreScore: number;
-  multiCoreScore: number;
+  singleCoreScore: number;  // estimated by Claude from model knowledge
+  multiCoreScore: number;   // derived from PassMark score
 }
 
 export interface NormalizedGpu {
@@ -32,7 +33,7 @@ export interface NormalizedGpu {
   memoryType: string;
   architecture: string;
   tier: Tier;
-  rasterScore: number;
+  rasterScore: number; // derived from PassMark score
 }
 
 export interface AmazonHit {
