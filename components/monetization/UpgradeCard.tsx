@@ -3,12 +3,18 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import type { BottleneckComponent, CpuOption, GpuOption } from "@/types/hardware";
+import type {
+  BottleneckComponent,
+  CpuOption,
+  GpuOption,
+  RamOption,
+} from "@/types/hardware";
 
 interface UpgradeCardProps {
   bottleneckComponent: Exclude<BottleneckComponent, "Balanced">;
   cpu: CpuOption;
   gpu: GpuOption;
+  ram?: RamOption;
   affiliateTag: string;
 }
 
@@ -16,15 +22,29 @@ function buildAffiliateUrl(asin: string, tag: string): string {
   return `https://www.amazon.de/dp/${asin}?tag=${tag}`;
 }
 
+const DESCRIPTIONS: Record<Exclude<BottleneckComponent, "Balanced">, string> = {
+  CPU: "Your processor is the limiting factor. A faster CPU will unlock your GPU's full potential.",
+  GPU: "Your graphics card can't keep up at this resolution. A GPU upgrade will directly improve frame rates.",
+  RAM: "Slow or single-channel RAM is starving your CPU. Upgrading to faster dual-channel memory can deliver measurable FPS gains.",
+};
+
 export function UpgradeCard({
   bottleneckComponent,
   cpu,
   gpu,
+  ram,
   affiliateTag,
 }: UpgradeCardProps) {
-  const component = bottleneckComponent === "CPU" ? cpu : gpu;
-  const link = component.retailLinks[0];
+  const component =
+    bottleneckComponent === "CPU"
+      ? cpu
+      : bottleneckComponent === "GPU"
+        ? gpu
+        : ram;
 
+  if (!component) return null;
+
+  const link = component.retailLinks[0];
   if (!link) return null;
 
   const href = buildAffiliateUrl(link.asin, affiliateTag);
@@ -43,14 +63,15 @@ export function UpgradeCard({
           <CardTitle className="text-sm font-semibold text-slate-800">
             Upgrade Recommendation
           </CardTitle>
-          <Badge variant="outline" className="shrink-0 text-[10px] text-slate-400 border-slate-200">
+          <Badge
+            variant="outline"
+            className="shrink-0 text-[10px] text-slate-400 border-slate-200"
+          >
             Affiliate Partner
           </Badge>
         </div>
         <p className="text-xs text-slate-500">
-          Your {bottleneckComponent} is limiting your{" "}
-          {bottleneckComponent === "CPU" ? "GPU" : "CPU"}&apos;s potential.
-          Upgrading it will unlock measurable FPS gains.
+          {DESCRIPTIONS[bottleneckComponent]}
         </p>
       </CardHeader>
       <CardContent className="pt-0">

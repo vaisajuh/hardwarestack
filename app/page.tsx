@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 // Always SSR — data lives in the database, not at build time
 export const dynamic = "force-dynamic";
 import { BottleneckCalculator } from "@/components/calculator/BottleneckCalculator";
-import type { CpuOption, GpuOption } from "@/types/hardware";
+import type { CpuOption, GpuOption, RamOption } from "@/types/hardware";
 
 export const metadata: Metadata = {
   title: "PC Bottleneck Calculator",
@@ -32,8 +32,18 @@ async function getGpus(): Promise<GpuOption[]> {
   return rows as GpuOption[];
 }
 
+async function getRams(): Promise<RamOption[]> {
+  const rows = await prisma.ram.findMany({
+    orderBy: [{ type: "asc" }, { speedMhz: "asc" }],
+    include: {
+      retailLinks: { select: { asin: true, retailTitle: true, currentPrice: true, currency: true } },
+    },
+  });
+  return rows as RamOption[];
+}
+
 export default async function HomePage() {
-  const [cpus, gpus] = await Promise.all([getCpus(), getGpus()]);
+  const [cpus, gpus, rams] = await Promise.all([getCpus(), getGpus(), getRams()]);
 
   return (
     <div className="flex flex-col flex-1">
@@ -69,13 +79,14 @@ export default async function HomePage() {
               <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">
                 npm run db:seed
               </code>{" "}
-              to populate the database.
+              to populate the database with CPUs, GPUs, and RAM kits.
             </p>
           </div>
         ) : (
           <BottleneckCalculator
             cpus={cpus}
             gpus={gpus}
+            rams={rams}
             affiliateTag={AFFILIATE_TAG}
           />
         )}
