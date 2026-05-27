@@ -4,7 +4,6 @@ import type { AmazonHit } from "../types";
 const SEARCH_BASE = "https://www.amazon.de/s";
 const CHROMIUM_ARGS = ["--no-sandbox", "--disable-setuid-sandbox"];
 
-// Amazon ASIN is a 10-character alphanumeric string embedded in product URLs.
 const ASIN_RE = /\/(?:dp|gp\/product)\/([A-Z0-9]{10})/;
 
 function extractAsin(url: string): string | null {
@@ -17,7 +16,32 @@ function parsePrice(raw: string): number | null {
   return isNaN(n) ? null : n;
 }
 
-export async function searchAmazon(query: string): Promise<AmazonHit | null> {
+// Extract tokens from the model name that look like specific model identifiers
+// (contain digits). These must appear in the result title for it to be a valid match.
+function modelTokens(name: string): string[] {
+  return name.split(/\s+/).filter((t) => /\d/.test(t));
+}
+
+function titleMatchesModel(title: string, tokens: string[]): boolean {
+  if (tokens.length === 0) return true;
+  const lower = title.toLowerCase();
+  // All digit-containing tokens must appear in the result title
+  return tokens.every((t) => lower.includes(t.toLowerCase()));
+}
+
+const CATEGORY_SUFFIX: Record<"cpu" | "gpu" | "ram", string> = {
+  cpu: "desktop processor",
+  gpu: "graphics card",
+  ram: "memory RAM",
+};
+
+export async function searchAmazon(
+  modelName: string,
+  category: "cpu" | "gpu" | "ram"
+): Promise<AmazonHit | null> {
+  const query = `${modelName} ${CATEGORY_SUFFIX[category]}`;
+  const tokens = modelTokens(modelName);
+
   const browser = await chromium.launch({ args: CHROMIUM_ARGS });
   const context = await browser.newContext({
     userAgent:
@@ -27,52 +51,65 @@ export async function searchAmazon(query: string): Promise<AmazonHit | null> {
   const page = await context.newPage();
 
   try {
-    const url = `${SEARCH_BASE}?k=${encodeURIComponent(query)}&s=review-rank`;
+    // Use default relevance ranking (no s= param) for best model-match results
+    const url = `${SEARCH_BASE}?k=${encodeURIComponent(query)}`;
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 20_000 });
 
-    // First organic result
-    const firstResult = page.locator('[data-component-type="s-search-result"]').first();
-    await firstResult.waitFor({ timeout: 8_000 });
+    const results = page.locator('[data-component-type="s-search-result"]');
+    await results.first().waitFor({ timeout: 8_000 });
 
-    const href = await firstResult
-      .locator("a.a-link-normal[href*='/dp/']")
-      .first()
-      .getAttribute("href");
+    const count = await results.count();
 
-    if (!href) return null;
-    const asin = extractAsin(href);
-    if (!asin) return null;
+    // Walk the top results (up to 5) and pick the first one whose title
+    // contains all the model-identifying tokens from the search query.
+    for (let i = 0; i < Math.min(count, 5); i++) {
+      const result = results.nth(i);
 
-    const title = await firstResult
-      .locator("h2 span")
-      .first()
-      .textContent()
-      .then((t) => t?.trim() ?? "")
-      .catch(() => "");
+      const href = await result
+        .locator("a.a-link-normal[href*='/dp/']")
+        .first()
+        .getAttribute("href")
+        .catch(() => null);
 
-    const priceWhole = await firstResult
-      .locator(".a-price-whole")
-      .first()
-      .textContent()
-      .catch(() => null);
+      if (!href) continue;
+      const asin = extractAsin(href);
+      if (!asin) continue;
 
-    const priceFraction = await firstResult
-      .locator(".a-price-fraction")
-      .first()
-      .textContent()
-      .catch(() => null);
+      const title = await result
+        .locator("h2 span")
+        .first()
+        .textContent()
+        .then((t) => t?.trim() ?? "")
+        .catch(() => "");
 
-    const priceRaw =
-      priceWhole != null
-        ? `${priceWhole}${priceFraction ?? ""}`.replace(/\s/g, "")
-        : null;
+      if (!titleMatchesModel(title, tokens)) continue;
 
-    return {
-      asin,
-      title: title || query,
-      price: priceRaw ? parsePrice(priceRaw) : null,
-      currency: "EUR",
-    };
+      const priceWhole = await result
+        .locator(".a-price-whole")
+        .first()
+        .textContent()
+        .catch(() => null);
+
+      const priceFraction = await result
+        .locator(".a-price-fraction")
+        .first()
+        .textContent()
+        .catch(() => null);
+
+      const priceRaw =
+        priceWhole != null
+          ? `${priceWhole}${priceFraction ?? ""}`.replace(/\s/g, "")
+          : null;
+
+      return {
+        asin,
+        title: title || modelName,
+        price: priceRaw ? parsePrice(priceRaw) : null,
+        currency: "EUR",
+      };
+    }
+
+    return null;
   } catch {
     return null;
   } finally {

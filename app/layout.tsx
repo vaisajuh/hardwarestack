@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 
 const geist = Geist({
@@ -35,7 +36,47 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-slate-50 font-sans text-slate-900">
-        {children}
+        <header className="border-b border-slate-200 bg-white sticky top-0 z-10">
+          <div className="mx-auto max-w-5xl px-4 py-3 flex items-center gap-6">
+            <Link href="/" className="flex items-center gap-2.5 shrink-0">
+              <div className="flex h-7 w-7 items-center justify-center rounded bg-slate-900">
+                <span className="text-xs font-bold text-white">HS</span>
+              </div>
+              <span className="text-sm font-semibold text-slate-900 tracking-tight">
+                HardwareStack
+              </span>
+            </Link>
+            <nav className="flex items-center gap-1 text-sm">
+              <Link
+                href="/cpus"
+                className="rounded px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
+              >
+                CPUs
+              </Link>
+              <Link
+                href="/gpus"
+                className="rounded px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
+              >
+                GPUs
+              </Link>
+            </nav>
+          </div>
+        </header>
+
+        <div className="flex flex-col flex-1">{children}</div>
+
+        <footer className="border-t border-slate-200 bg-white mt-auto">
+          <div className="mx-auto max-w-5xl px-4 py-4 flex flex-col sm:flex-row gap-2 sm:items-center justify-between text-xs text-slate-400">
+            <span>
+              Results are based on normalized benchmark scores and are intended
+              as a guide.
+            </span>
+            <span>
+              As an Amazon Associate, HardwareStack earns from qualifying
+              purchases.
+            </span>
+          </div>
+        </footer>
       </body>
     </html>
   );

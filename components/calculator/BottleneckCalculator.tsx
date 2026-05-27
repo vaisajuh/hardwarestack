@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { BottleneckGauge } from "./BottleneckGauge";
 import { UpgradeCard } from "@/components/monetization/UpgradeCard";
 
@@ -26,6 +25,8 @@ interface Props {
   gpus: GpuOption[];
   rams: RamOption[];
   affiliateTag: string;
+  defaultCpuId?: string;
+  defaultGpuId?: string;
 }
 
 const RESOLUTIONS: Resolution[] = ["1080p", "1440p", "4K"];
@@ -50,12 +51,49 @@ const HEADLINE: Record<string, string> = {
   CPU: "CPU Bottleneck",
   GPU: "GPU Bottleneck",
   RAM: "RAM Bottleneck",
-  Balanced: "Balanced System",
+  Balanced: "Well Matched",
 };
 
-export function BottleneckCalculator({ cpus, gpus, rams, affiliateTag }: Props) {
-  const [selectedCpuId, setSelectedCpuId] = useState("");
-  const [selectedGpuId, setSelectedGpuId] = useState("");
+const DESCRIPTION: Record<string, (cpu: string, gpu: string, res: string) => string> = {
+  CPU: (cpu, _gpu, res) =>
+    `${cpu} is the limiting factor at ${res}. A faster CPU will unlock your GPU's full potential.`,
+  GPU: (_cpu, gpu, res) =>
+    `${gpu} can't keep up at ${res}. A GPU upgrade will directly improve frame rates.`,
+  RAM: (_cpu, _gpu, res) =>
+    `Slow or single-channel RAM is starving your CPU at ${res}. Faster dual-channel memory will deliver measurable FPS gains.`,
+  Balanced: (cpu, gpu, res) =>
+    `${cpu} and ${gpu} are well matched at ${res}.`,
+};
+
+const RESULT_ACCENT: Record<string, string> = {
+  CPU: "border-l-red-500",
+  GPU: "border-l-red-500",
+  RAM: "border-l-amber-500",
+  Balanced: "border-l-emerald-500",
+};
+
+function shortName(name: string): string {
+  return name
+    .replace("Intel Core ", "")
+    .replace("AMD Ryzen ", "Ryzen ")
+    .replace("NVIDIA GeForce ", "")
+    .replace("AMD Radeon ", "");
+}
+
+export function BottleneckCalculator({
+  cpus,
+  gpus,
+  rams,
+  affiliateTag,
+  defaultCpuId,
+  defaultGpuId,
+}: Props) {
+  const [selectedCpuId, setSelectedCpuId] = useState(
+    defaultCpuId && cpus.some((c) => c.id === defaultCpuId) ? defaultCpuId : ""
+  );
+  const [selectedGpuId, setSelectedGpuId] = useState(
+    defaultGpuId && gpus.some((g) => g.id === defaultGpuId) ? defaultGpuId : ""
+  );
   const [selectedRamId, setSelectedRamId] = useState("");
   const [resolution, setResolution] = useState<Resolution>("1080p");
 
@@ -73,28 +111,18 @@ export function BottleneckCalculator({ cpus, gpus, rams, affiliateTag }: Props) 
   const ramGroups = groupByTier(rams);
 
   const showUpgrade =
-    result &&
-    result.bottleneckComponent !== "Balanced" &&
-    selectedCpu &&
-    selectedGpu;
-
-  const shortName = (name: string) =>
-    name
-      .replace("Intel Core ", "")
-      .replace("AMD Ryzen ", "Ryzen ")
-      .replace("NVIDIA GeForce ", "")
-      .replace("AMD Radeon ", "");
+    result && result.bottleneckComponent !== "Balanced" && selectedCpu && selectedGpu;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       {/* Selector card */}
       <Card className="border-slate-200 shadow-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="text-base font-semibold text-slate-800">
-            Select Your Components
+          <CardTitle className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+            Your Components
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <CardContent className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {/* CPU */}
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
@@ -102,7 +130,9 @@ export function BottleneckCalculator({ cpus, gpus, rams, affiliateTag }: Props) 
             </Label>
             <Select
               value={selectedCpuId}
-              onValueChange={(v) => { if (v !== null) setSelectedCpuId(v); }}
+              onValueChange={(v) => {
+                if (v !== null) setSelectedCpuId(v);
+              }}
             >
               <SelectTrigger className="h-9 text-sm border-slate-200 w-full">
                 <SelectValue placeholder="Select CPU…" />
@@ -131,7 +161,9 @@ export function BottleneckCalculator({ cpus, gpus, rams, affiliateTag }: Props) 
             </Label>
             <Select
               value={selectedGpuId}
-              onValueChange={(v) => { if (v !== null) setSelectedGpuId(v); }}
+              onValueChange={(v) => {
+                if (v !== null) setSelectedGpuId(v);
+              }}
             >
               <SelectTrigger className="h-9 text-sm border-slate-200 w-full">
                 <SelectValue placeholder="Select GPU…" />
@@ -157,11 +189,15 @@ export function BottleneckCalculator({ cpus, gpus, rams, affiliateTag }: Props) 
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
               RAM{" "}
-              <span className="normal-case text-slate-400">(optional)</span>
+              <span className="normal-case font-normal text-slate-400">
+                (optional)
+              </span>
             </Label>
             <Select
               value={selectedRamId}
-              onValueChange={(v) => { if (v !== null) setSelectedRamId(v); }}
+              onValueChange={(v) => {
+                if (v !== null) setSelectedRamId(v);
+              }}
             >
               <SelectTrigger className="h-9 text-sm border-slate-200 w-full">
                 <SelectValue placeholder="Select RAM…" />
@@ -208,70 +244,84 @@ export function BottleneckCalculator({ cpus, gpus, rams, affiliateTag }: Props) 
       </Card>
 
       {/* Results */}
-      {result && selectedCpu && selectedGpu && (
-        <div className="flex flex-col gap-4">
-          {/* Headline */}
-          <div className="flex items-center gap-3">
-            <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white text-sm font-bold ${
-                result.bottleneckComponent === "Balanced"
-                  ? "bg-emerald-500"
-                  : "bg-red-500"
-              }`}
-            >
-              {result.bottleneckComponent === "Balanced"
-                ? "✓"
-                : `${Math.round(result.bottleneckPercentage)}%`}
-            </div>
+      {result && selectedCpu && selectedGpu ? (
+        <Card
+          className={`border-slate-200 shadow-sm border-l-4 ${RESULT_ACCENT[result.bottleneckComponent]}`}
+        >
+          <CardContent className="pt-5 pb-5 flex flex-col gap-5">
+            {/* Headline */}
             <div>
-              <p className="font-semibold text-slate-900">
-                {HEADLINE[result.bottleneckComponent]}
-                {result.bottleneckComponent !== "Balanced" &&
-                  ` — ${Math.round(result.bottleneckPercentage)}%`}
-              </p>
-              <p className="text-sm text-slate-500">
-                {result.bottleneckComponent === "Balanced"
-                  ? `${selectedCpu.modelName} and ${selectedGpu.modelName} are well-matched at ${resolution}.`
-                  : result.bottleneckComponent === "RAM"
-                    ? `Your RAM is limiting your CPU's effective throughput at ${resolution}.`
-                    : `Your ${result.bottleneckComponent} is the limiting factor at ${resolution}.`}
+              <div className="flex items-baseline gap-2">
+                <h2 className="text-lg font-bold text-slate-900">
+                  {HEADLINE[result.bottleneckComponent]}
+                </h2>
+                {result.bottleneckComponent !== "Balanced" && (
+                  <span className="text-sm font-semibold text-red-500">
+                    {Math.round(result.bottleneckPercentage)}% imbalance
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-sm text-slate-500">
+                {DESCRIPTION[result.bottleneckComponent](
+                  shortName(selectedCpu.modelName),
+                  shortName(selectedGpu.modelName),
+                  resolution
+                )}
               </p>
             </div>
-          </div>
 
-          <Separator className="bg-slate-100" />
-
-          {/* Gauges */}
-          <div className="flex flex-wrap justify-center gap-6 py-2">
-            <BottleneckGauge
-              label={shortName(selectedCpu.modelName)}
-              utilization={result.cpuUtilization}
-              isBottleneck={result.bottleneckComponent === "CPU"}
-            />
-            <BottleneckGauge
-              label={shortName(selectedGpu.modelName)}
-              utilization={result.gpuUtilization}
-              isBottleneck={result.bottleneckComponent === "GPU"}
-            />
-            {selectedRam && (
+            {/* Gauges */}
+            <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
               <BottleneckGauge
-                label={`${selectedRam.type}-${selectedRam.speedMhz}${selectedRam.channels === 1 ? " SC" : ""}`}
-                utilization={result.ramUtilization}
-                isBottleneck={result.bottleneckComponent === "RAM"}
+                label={shortName(selectedCpu.modelName)}
+                utilization={result.cpuUtilization}
+                isBottleneck={result.bottleneckComponent === "CPU"}
+              />
+              <BottleneckGauge
+                label={shortName(selectedGpu.modelName)}
+                utilization={result.gpuUtilization}
+                isBottleneck={result.bottleneckComponent === "GPU"}
+              />
+              {selectedRam && (
+                <BottleneckGauge
+                  label={`${selectedRam.type}-${selectedRam.speedMhz}${selectedRam.channels === 1 ? " SC" : ""}`}
+                  utilization={result.ramUtilization}
+                  isBottleneck={result.bottleneckComponent === "RAM"}
+                />
+              )}
+            </div>
+
+            {/* Upgrade recommendation */}
+            {showUpgrade && (
+              <UpgradeCard
+                bottleneckComponent={
+                  result.bottleneckComponent as "CPU" | "GPU" | "RAM"
+                }
+                cpu={selectedCpu}
+                gpu={selectedGpu}
+                ram={selectedRam}
+                affiliateTag={affiliateTag}
               />
             )}
+          </CardContent>
+        </Card>
+      ) : (
+        /* Empty prompt */
+        <div className="rounded-lg border border-dashed border-slate-200 bg-white px-6 py-10 text-center">
+          <div className="flex justify-center gap-4 mb-4">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="flex flex-col items-center gap-2 opacity-30"
+              >
+                <div className="h-16 w-16 rounded-full border-4 border-slate-300" />
+                <div className="h-2 w-12 rounded bg-slate-200" />
+              </div>
+            ))}
           </div>
-
-          {/* Upgrade recommendation */}
-          {showUpgrade && (
-            <UpgradeCard
-              bottleneckComponent={result.bottleneckComponent as "CPU" | "GPU" | "RAM"}
-              cpu={selectedCpu}
-              gpu={selectedGpu}
-              ram={selectedRam}
-              affiliateTag={affiliateTag}
-            />
-          )}
+          <p className="text-sm text-slate-400">
+            Select a CPU and GPU above to see the analysis
+          </p>
         </div>
       )}
     </div>

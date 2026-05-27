@@ -1,0 +1,325 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ExternalLink } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { toSlug } from "@/lib/slug";
+import { calculateBottleneck } from "@/lib/bottleneck";
+import { buttonVariants } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { CpuOption, GpuOption } from "@/types/hardware";
+
+export const dynamic = "force-dynamic";
+
+const AFFILIATE_TAG = process.env.NEXT_PUBLIC_AMAZON_AFFILIATE_TAG ?? "";
+
+interface Props {
+  params: Promise<{ slug: string }>;
+}
+
+const TIER_LABELS: Record<string, string> = {
+  ENTRY: "Entry",
+  MID: "Mid-Range",
+  HIGH: "High-End",
+  ULTRA: "Ultra",
+  ENTHUSIAST: "Enthusiast",
+};
+const TIER_COLORS: Record<string, string> = {
+  ENTRY: "bg-slate-100 text-slate-600",
+  MID: "bg-blue-50 text-blue-700",
+  HIGH: "bg-violet-50 text-violet-700",
+  ULTRA: "bg-amber-50 text-amber-700",
+  ENTHUSIAST: "bg-red-50 text-red-700",
+};
+const BOTTLENECK_COLORS: Record<string, string> = {
+  CPU: "text-red-600 bg-red-50",
+  GPU: "text-slate-600 bg-slate-50",
+  RAM: "text-amber-600 bg-amber-50",
+  Balanced: "text-emerald-600 bg-emerald-50",
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const allCpus = await prisma.cpu.findMany({ select: { modelName: true } });
+  const match = allCpus.find((c) => toSlug(c.modelName) === slug);
+  if (!match) return {};
+  return {
+    title: `${match.modelName} Bottleneck Test & Specs`,
+    description: `Check ${match.modelName} bottleneck analysis, GPU compatibility, and specs. Find the best GPU pairing for the ${match.modelName}.`,
+    keywords: [
+      `${match.modelName} bottleneck`,
+      `${match.modelName} GPU pairing`,
+      `${match.modelName} specs`,
+      `${match.modelName} bottleneck calculator`,
+    ],
+  };
+}
+
+const TIER_ORDER = ["ENTRY", "MID", "HIGH", "ULTRA", "ENTHUSIAST"] as const;
+
+export default async function CpuDetailPage({ params }: Props) {
+  const { slug } = await params;
+
+  const [allCpus, allGpus] = await Promise.all([
+    prisma.cpu.findMany({
+      include: {
+        retailLinks: {
+          select: {
+            asin: true,
+            retailTitle: true,
+            currentPrice: true,
+            currency: true,
+          },
+        },
+      },
+    }),
+    prisma.gpu.findMany({
+      include: { retailLinks: { select: { asin: true } } },
+      orderBy: { rasterScore: "desc" },
+    }),
+  ]);
+
+  const cpu = allCpus.find((c) => toSlug(c.modelName) === slug);
+  if (!cpu) notFound();
+
+  // One representative GPU per tier for pairing table
+  const pairingGpus = TIER_ORDER.flatMap((tier) => {
+    const best = allGpus.find((g) => g.tier === tier);
+    return best ? [best] : [];
+  });
+
+  const pairings = pairingGpus.map((gpu) => ({
+    gpu,
+    result: calculateBottleneck(
+      cpu as unknown as CpuOption,
+      gpu as unknown as GpuOption,
+      "1080p"
+    ),
+  }));
+
+  const retailLink = cpu.retailLinks[0];
+  const priceDisplay =
+    retailLink?.currentPrice != null
+      ? new Intl.NumberFormat("de-DE", {
+          style: "currency",
+          currency: retailLink.currency,
+        }).format(retailLink.currentPrice)
+      : null;
+
+  return (
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:py-12">
+      {/* Breadcrumb */}
+      <nav className="mb-6 flex items-center gap-1.5 text-xs text-slate-400">
+        <Link href="/" className="hover:text-slate-600">
+          Home
+        </Link>
+        <span>/</span>
+        <Link href="/cpus" className="hover:text-slate-600">
+          CPUs
+        </Link>
+        <span>/</span>
+        <span className="text-slate-600">{cpu.modelName}</span>
+      </nav>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Main column */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          {/* Header */}
+          <div>
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${TIER_COLORS[cpu.tier]}`}
+              >
+                {TIER_LABELS[cpu.tier]}
+              </span>
+              <Badge variant="outline" className="text-xs text-slate-500">
+                {cpu.vendor === "INTEL" ? "Intel" : "AMD"}
+              </Badge>
+              {cpu.socket && (
+                <Badge variant="outline" className="text-xs text-slate-500">
+                  {cpu.socket}
+                </Badge>
+              )}
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              {cpu.modelName}
+            </h1>
+            <p className="mt-2 text-sm text-slate-500">
+              {cpu.cores}-core {cpu.vendor === "INTEL" ? "Intel" : "AMD"}{" "}
+              desktop processor with {cpu.boostClockGhz} GHz boost clock.{" "}
+              {TIER_LABELS[cpu.tier]}-tier performance for gaming and productivity.
+            </p>
+          </div>
+
+          {/* Specs */}
+          <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+            <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Specifications
+              </h2>
+            </div>
+            <dl className="divide-y divide-slate-100">
+              {(
+                [
+                  ["Cores / Threads", `${cpu.cores} / ${cpu.threads}`],
+                  ["Base Clock", `${cpu.baseClockGhz} GHz`],
+                  ["Boost Clock", `${cpu.boostClockGhz} GHz`],
+                  cpu.socket ? ["Socket", cpu.socket] : null,
+                  cpu.singleCoreScore != null
+                    ? ["Single-core Score", cpu.singleCoreScore.toLocaleString()]
+                    : null,
+                  cpu.multiCoreScore != null
+                    ? ["Multi-core Score", cpu.multiCoreScore.toLocaleString()]
+                    : null,
+                ] as ([string, string] | null)[]
+              )
+                .filter((row): row is [string, string] => row !== null)
+                .map(([label, value]) => (
+                  <div
+                    key={label as string}
+                    className="flex items-center justify-between px-4 py-2.5 text-sm"
+                  >
+                    <dt className="text-slate-500">{label}</dt>
+                    <dd className="font-medium text-slate-800 tabular-nums">
+                      {value}
+                    </dd>
+                  </div>
+                ))}
+            </dl>
+          </div>
+
+          {/* Pairing table */}
+          <div>
+            <h2 className="text-base font-semibold text-slate-800 mb-3">
+              GPU Pairing Analysis at 1080p
+            </h2>
+            <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50">
+                    <th className="text-left px-4 py-2.5 font-medium text-slate-500 text-xs">
+                      GPU
+                    </th>
+                    <th className="text-right px-4 py-2.5 font-medium text-slate-500 text-xs">
+                      CPU Load
+                    </th>
+                    <th className="text-right px-4 py-2.5 font-medium text-slate-500 text-xs">
+                      GPU Load
+                    </th>
+                    <th className="text-right px-4 py-2.5 font-medium text-slate-500 text-xs">
+                      Result
+                    </th>
+                    <th className="px-4 py-2.5" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {pairings.map(({ gpu, result }) => (
+                    <tr
+                      key={gpu.id}
+                      className="hover:bg-slate-50 transition-colors"
+                    >
+                      <td className="px-4 py-3 font-medium text-slate-800">
+                        <Link
+                          href={`/gpu/${toSlug(gpu.modelName)}`}
+                          className="hover:text-slate-600"
+                        >
+                          {gpu.modelName}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-slate-600">
+                        {result.cpuUtilization}%
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-slate-600">
+                        {result.gpuUtilization}%
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${BOTTLENECK_COLORS[result.bottleneckComponent]}`}
+                        >
+                          {result.bottleneckComponent === "Balanced"
+                            ? "Balanced"
+                            : `${result.bottleneckComponent} BN`}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Link
+                          href={`/?cpuId=${cpu.id}&gpuId=${gpu.id}`}
+                          className="text-xs text-slate-400 hover:text-slate-700"
+                        >
+                          Full test →
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div className="flex flex-col gap-4">
+          {/* CTA */}
+          <div className="rounded-lg border border-slate-200 bg-white p-5 flex flex-col gap-3">
+            <p className="text-sm font-semibold text-slate-800">
+              Test {cpu.modelName} in the Calculator
+            </p>
+            <p className="text-xs text-slate-500">
+              Select your GPU and resolution to see a full bottleneck breakdown.
+            </p>
+            <Link
+              href={`/?cpuId=${cpu.id}`}
+              className={cn(
+                buttonVariants({ variant: "default", size: "sm" }),
+                "bg-slate-900 hover:bg-slate-700 no-underline"
+              )}
+            >
+              Open Calculator
+            </Link>
+          </div>
+
+          {/* Buy */}
+          {retailLink && (
+            <div className="rounded-lg border border-slate-200 bg-white p-5 flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-semibold text-slate-800">
+                  Buy on Amazon
+                </p>
+                <Badge
+                  variant="outline"
+                  className="shrink-0 text-[10px] text-slate-400 border-slate-200"
+                >
+                  Affiliate
+                </Badge>
+              </div>
+              {priceDisplay && (
+                <p className="text-xl font-bold text-slate-900">{priceDisplay}</p>
+              )}
+              <a
+                href={`https://www.amazon.de/dp/${retailLink.asin}?tag=${AFFILIATE_TAG}`}
+                target="_blank"
+                rel="noopener noreferrer sponsored"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "no-underline"
+                )}
+              >
+                Check Price
+                <ExternalLink className="ml-1.5 h-3 w-3" />
+              </a>
+            </div>
+          )}
+
+          {/* All CPUs link */}
+          <Link
+            href="/cpus"
+            className="text-xs text-slate-400 hover:text-slate-600 text-center py-1"
+          >
+            ← Browse all CPUs
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}

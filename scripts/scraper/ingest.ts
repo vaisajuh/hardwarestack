@@ -139,7 +139,7 @@ async function runAmazon() {
 
   for (const cpu of cpusToEnrich) {
     console.log(`  Searching Amazon: ${cpu.modelName}`);
-    const hit = await searchAmazon(cpu.modelName);
+    const hit = await searchAmazon(cpu.modelName, "cpu");
     if (hit) {
       await prisma.retailLink.upsert({
         where: { asin: hit.asin },
@@ -161,7 +161,7 @@ async function runAmazon() {
 
   for (const gpu of gpusToEnrich) {
     console.log(`  Searching Amazon: ${gpu.modelName}`);
-    const hit = await searchAmazon(gpu.modelName);
+    const hit = await searchAmazon(gpu.modelName, "gpu");
     if (hit) {
       await prisma.retailLink.upsert({
         where: { asin: hit.asin },
@@ -183,7 +183,7 @@ async function runAmazon() {
 
   for (const ram of ramsToEnrich) {
     console.log(`  Searching Amazon: ${ram.modelName}`);
-    const hit = await searchAmazon(ram.modelName);
+    const hit = await searchAmazon(ram.modelName, "ram");
     if (hit) {
       await prisma.retailLink.upsert({
         where: { asin: hit.asin },
