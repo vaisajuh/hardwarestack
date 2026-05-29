@@ -1,6 +1,9 @@
 app = 'hardwarestack'
 primary_region = 'arn'
 
+[deploy]
+  release_command = "node_modules/.bin/prisma migrate deploy"
+
 [build]
 
 [http_service]
