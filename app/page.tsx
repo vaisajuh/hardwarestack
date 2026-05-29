@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { BottleneckCalculator } from "@/components/calculator/BottleneckCalculator";
+import { MethodologySection } from "@/components/calculator/MethodologySection";
 import type { CpuOption, GpuOption, RamOption } from "@/types/hardware";
 
 export const dynamic = "force-dynamic";
@@ -9,58 +11,54 @@ export const metadata: Metadata = {
   title: "PC Bottleneck Calculator",
 };
 
-const AFFILIATE_TAG = process.env.NEXT_PUBLIC_AMAZON_AFFILIATE_TAG ?? "";
 
-async function getCpus(): Promise<CpuOption[]> {
-  const rows = await prisma.cpu.findMany({
-    orderBy: [{ tier: "asc" }, { singleCoreScore: "desc" }],
-    include: {
-      retailLinks: {
-        select: {
-          asin: true,
-          retailTitle: true,
-          currentPrice: true,
-          currency: true,
+const getCpus = unstable_cache(
+  async (): Promise<CpuOption[]> => {
+    const rows = await prisma.cpu.findMany({
+      orderBy: [{ tier: "asc" }, { singleCoreScore: "desc" }],
+      include: {
+        retailLinks: {
+          select: { asin: true, retailTitle: true, currentPrice: true, currency: true },
         },
       },
-    },
-  });
-  return rows as CpuOption[];
-}
+    });
+    return rows as CpuOption[];
+  },
+  ["cpus"],
+  { tags: ["hardware"], revalidate: 86400 }
+);
 
-async function getGpus(): Promise<GpuOption[]> {
-  const rows = await prisma.gpu.findMany({
-    orderBy: [{ tier: "asc" }, { rasterScore: "desc" }],
-    include: {
-      retailLinks: {
-        select: {
-          asin: true,
-          retailTitle: true,
-          currentPrice: true,
-          currency: true,
+const getGpus = unstable_cache(
+  async (): Promise<GpuOption[]> => {
+    const rows = await prisma.gpu.findMany({
+      orderBy: [{ tier: "asc" }, { rasterScore: "desc" }],
+      include: {
+        retailLinks: {
+          select: { asin: true, retailTitle: true, currentPrice: true, currency: true },
         },
       },
-    },
-  });
-  return rows as GpuOption[];
-}
+    });
+    return rows as GpuOption[];
+  },
+  ["gpus"],
+  { tags: ["hardware"], revalidate: 86400 }
+);
 
-async function getRams(): Promise<RamOption[]> {
-  const rows = await prisma.ram.findMany({
-    orderBy: [{ type: "asc" }, { speedMhz: "asc" }],
-    include: {
-      retailLinks: {
-        select: {
-          asin: true,
-          retailTitle: true,
-          currentPrice: true,
-          currency: true,
+const getRams = unstable_cache(
+  async (): Promise<RamOption[]> => {
+    const rows = await prisma.ram.findMany({
+      orderBy: [{ type: "asc" }, { speedMhz: "asc" }],
+      include: {
+        retailLinks: {
+          select: { asin: true, retailTitle: true, currentPrice: true, currency: true },
         },
       },
-    },
-  });
-  return rows as RamOption[];
-}
+    });
+    return rows as RamOption[];
+  },
+  ["rams"],
+  { tags: ["hardware"], revalidate: 86400 }
+);
 
 interface HomePageProps {
   searchParams: Promise<{ cpuId?: string; gpuId?: string }>;
@@ -98,14 +96,16 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </p>
         </div>
       ) : (
-        <BottleneckCalculator
-          cpus={cpus}
-          gpus={gpus}
-          rams={rams}
-          affiliateTag={AFFILIATE_TAG}
-          defaultCpuId={cpuId}
-          defaultGpuId={gpuId}
-        />
+        <>
+          <BottleneckCalculator
+            cpus={cpus}
+            gpus={gpus}
+            rams={rams}
+            defaultCpuId={cpuId}
+            defaultGpuId={gpuId}
+          />
+          <MethodologySection />
+        </>
       )}
     </main>
   );

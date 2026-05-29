@@ -77,10 +77,17 @@ export default function RootLayout({
               HardwareStack accepts no responsibility for damaged, incompatible,
               or incorrectly installed hardware.
             </p>
-            <span>
-              As an Amazon Associate, HardwareStack earns from qualifying
-              purchases.
-            </span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span>
+                Contact:{" "}
+                <a
+                  href="mailto:summit.dragon4613@eagereverest.com"
+                  className="underline hover:text-slate-900"
+                >
+                  summit.dragon4613@eagereverest.com
+                </a>
+              </span>
+            </div>
           </div>
         </footer>
       </body>

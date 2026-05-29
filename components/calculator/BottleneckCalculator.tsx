@@ -24,7 +24,6 @@ interface Props {
   cpus: CpuOption[];
   gpus: GpuOption[];
   rams: RamOption[];
-  affiliateTag: string;
   defaultCpuId?: string;
   defaultGpuId?: string;
 }
@@ -120,7 +119,6 @@ export function BottleneckCalculator({
   cpus,
   gpus,
   rams,
-  affiliateTag,
   defaultCpuId,
   defaultGpuId,
 }: Props) {
@@ -369,7 +367,6 @@ export function BottleneckCalculator({
                 gpus={gpus}
                 rams={rams}
                 resolution={resolution}
-                affiliateTag={affiliateTag}
               />
             )}
           </CardContent>
