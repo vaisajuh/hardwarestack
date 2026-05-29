@@ -2,7 +2,7 @@ app = 'hardwarestack'
 primary_region = 'arn'
 
 [deploy]
-  release_command = "node_modules/.bin/prisma migrate deploy"
+  release_command = "node_modules/.bin/prisma migrate deploy && node_modules/.bin/tsx prisma/seed.ts"
 
 [build]
 
