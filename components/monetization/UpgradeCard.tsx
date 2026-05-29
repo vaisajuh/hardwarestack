@@ -1,13 +1,17 @@
+"use client";
+
 import { ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { calculateBottleneck } from "@/lib/bottleneck";
 import type {
   BottleneckComponent,
   CpuOption,
   GpuOption,
   RamOption,
+  Resolution,
 } from "@/types/hardware";
 
 interface UpgradeCardProps {
@@ -15,11 +19,81 @@ interface UpgradeCardProps {
   cpu: CpuOption;
   gpu: GpuOption;
   ram?: RamOption;
+  cpus: CpuOption[];
+  gpus: GpuOption[];
+  rams: RamOption[];
+  resolution: Resolution;
   affiliateTag: string;
 }
 
 function buildAffiliateUrl(asin: string, tag: string): string {
   return `https://www.amazon.de/dp/${asin}?tag=${tag}`;
+}
+
+// Find the cheapest upgrade that actually eliminates the bottleneck when
+// paired with the current (non-bottleneck) components.
+function findMinimalUpgrade(
+  bottleneckComponent: Exclude<BottleneckComponent, "Balanced">,
+  cpu: CpuOption,
+  gpu: GpuOption,
+  ram: RamOption | undefined,
+  cpus: CpuOption[],
+  gpus: GpuOption[],
+  rams: RamOption[],
+  resolution: Resolution
+): CpuOption | GpuOption | RamOption | null {
+  if (bottleneckComponent === "GPU") {
+    const current = gpu.rasterScore ?? 0;
+    const candidates = gpus
+      .filter((g) => g.id !== gpu.id && (g.rasterScore ?? 0) > current && g.retailLinks.length > 0)
+      .sort((a, b) => (a.rasterScore ?? 0) - (b.rasterScore ?? 0));
+    for (const candidate of candidates) {
+      if (calculateBottleneck(cpu, candidate, resolution, ram).bottleneckComponent !== "GPU") {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  if (bottleneckComponent === "CPU") {
+    const TIER_RANK: Record<string, number> = { ENTRY: 0, MID: 1, HIGH: 2, ULTRA: 3, ENTHUSIAST: 4 };
+    const currentTier = TIER_RANK[cpu.tier] ?? 0;
+    const currentSingle = cpu.singleCoreScore ?? 0;
+    const candidates = cpus
+      .filter(
+        (c) =>
+          c.id !== cpu.id &&
+          c.vendor === cpu.vendor &&
+          c.retailLinks.length > 0 &&
+          ((TIER_RANK[c.tier] ?? 0) > currentTier ||
+            ((TIER_RANK[c.tier] ?? 0) === currentTier && (c.singleCoreScore ?? 0) > currentSingle))
+      )
+      .sort((a, b) => {
+        const td = (TIER_RANK[a.tier] ?? 0) - (TIER_RANK[b.tier] ?? 0);
+        return td !== 0 ? td : (a.singleCoreScore ?? 0) - (b.singleCoreScore ?? 0);
+      });
+    for (const candidate of candidates) {
+      if (calculateBottleneck(candidate, gpu, resolution, ram).bottleneckComponent !== "CPU") {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  if (bottleneckComponent === "RAM" && ram) {
+    const currentBw = ram.speedMhz * ram.channels;
+    const candidates = rams
+      .filter((r) => r.id !== ram.id && r.speedMhz * r.channels > currentBw && r.retailLinks.length > 0)
+      .sort((a, b) => a.speedMhz * a.channels - b.speedMhz * b.channels);
+    for (const candidate of candidates) {
+      if (calculateBottleneck(cpu, gpu, resolution, candidate).bottleneckComponent !== "RAM") {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  return null;
 }
 
 const DESCRIPTIONS: Record<Exclude<BottleneckComponent, "Balanced">, string> = {
@@ -33,18 +107,26 @@ export function UpgradeCard({
   cpu,
   gpu,
   ram,
+  cpus,
+  gpus,
+  rams,
+  resolution,
   affiliateTag,
 }: UpgradeCardProps) {
-  const component =
-    bottleneckComponent === "CPU"
-      ? cpu
-      : bottleneckComponent === "GPU"
-        ? gpu
-        : ram;
+  const upgrade = findMinimalUpgrade(
+    bottleneckComponent,
+    cpu,
+    gpu,
+    ram,
+    cpus,
+    gpus,
+    rams,
+    resolution
+  );
 
-  if (!component) return null;
+  if (!upgrade) return null;
 
-  const link = component.retailLinks[0];
+  const link = upgrade.retailLinks[0];
   if (!link) return null;
 
   const href = buildAffiliateUrl(link.asin, affiliateTag);
@@ -78,7 +160,7 @@ export function UpgradeCard({
         <div className="flex items-center gap-3 rounded-md border border-slate-100 bg-slate-50 p-3">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-slate-800">
-              {component.modelName}
+              {upgrade.modelName}
             </p>
             {priceDisplay && (
               <p className="mt-0.5 text-sm font-semibold text-slate-900">

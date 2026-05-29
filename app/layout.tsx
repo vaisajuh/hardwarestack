@@ -66,11 +66,17 @@ export default function RootLayout({
         <div className="flex flex-col flex-1">{children}</div>
 
         <footer className="border-t border-slate-200 bg-white mt-auto">
-          <div className="mx-auto max-w-5xl px-4 py-4 flex flex-col sm:flex-row gap-2 sm:items-center justify-between text-xs text-slate-400">
-            <span>
-              Results are based on normalized benchmark scores and are intended
-              as a guide.
-            </span>
+          <div className="mx-auto max-w-5xl px-4 py-5 flex flex-col gap-3 text-xs text-slate-700">
+            <p>
+              <span className="font-semibold">Disclaimer: </span>
+              Results are based on normalized benchmark scores and are provided
+              for informational purposes only. HardwareStack makes no guarantees
+              about the accuracy, completeness, or fitness of any information on
+              this site. Always verify component compatibility with your
+              motherboard&apos;s specifications and QVL before purchasing.
+              HardwareStack accepts no responsibility for damaged, incompatible,
+              or incorrectly installed hardware.
+            </p>
             <span>
               As an Amazon Associate, HardwareStack earns from qualifying
               purchases.

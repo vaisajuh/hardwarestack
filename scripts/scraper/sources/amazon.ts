@@ -29,18 +29,34 @@ function titleMatchesModel(title: string, tokens: string[]): boolean {
   return tokens.every((t) => lower.includes(t.toLowerCase()));
 }
 
-const CATEGORY_SUFFIX: Record<"cpu" | "gpu" | "ram", string> = {
+const CATEGORY_SUFFIX: Record<"cpu" | "gpu", string> = {
   cpu: "desktop processor",
   gpu: "graphics card",
-  ram: "memory RAM",
 };
+
+// For RAM: strip the verbose model name down to brand + DDR type + speed,
+// which is what Amazon titles actually contain.
+// "G.Skill Trident Z5 RGB DDR5-7200 CL34 2×16GB" → query "G.Skill DDR5-7200 memory kit"
+//                                                    tokens ["DDR5", "7200"]
+function buildRamSearch(modelName: string): { query: string; tokens: string[] } {
+  const typeSpeed = /(DDR[45])[- ](\d+)/i.exec(modelName);
+  const brand = modelName.split(/\s+/)[0] ?? "";
+  if (!typeSpeed) return { query: `${modelName} memory`, tokens: [] };
+  const [, type, speed] = typeSpeed;
+  return {
+    query: `${brand} ${type}-${speed} memory kit`,
+    tokens: [type!.toUpperCase(), speed!],
+  };
+}
 
 export async function searchAmazon(
   modelName: string,
   category: "cpu" | "gpu" | "ram"
 ): Promise<AmazonHit | null> {
-  const query = `${modelName} ${CATEGORY_SUFFIX[category]}`;
-  const tokens = modelTokens(modelName);
+  const { query, tokens } =
+    category === "ram"
+      ? buildRamSearch(modelName)
+      : { query: `${modelName} ${CATEGORY_SUFFIX[category]}`, tokens: modelTokens(modelName) };
 
   const browser = await chromium.launch({ args: CHROMIUM_ARGS });
   const context = await browser.newContext({

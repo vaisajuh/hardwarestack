@@ -18,6 +18,7 @@ export interface CpuOption {
   vendor: VendorType;
   modelName: string;
   tier: TierType;
+  socket: string | null;
   cores: number;
   threads: number;
   boostClockGhz: number;

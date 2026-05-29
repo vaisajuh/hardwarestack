@@ -43,7 +43,7 @@ async function runCpus() {
   let raw = cacheRead<ReturnType<typeof scrapeCpus> extends Promise<infer T> ? T : never>("cpus-raw.json");
   if (!raw) {
     console.log("Scraping PassMark CPU list…");
-    raw = await scrapeCpus(300);
+    raw = await scrapeCpus();
     cacheWrite("cpus-raw.json", raw);
     console.log(`  Scraped ${raw.length} raw entries`);
   } else {

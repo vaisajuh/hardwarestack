@@ -66,24 +66,37 @@ const gpus = [
 // speedMhz × channels gives the effective bandwidth score used in calculateBottleneck.
 // RAM_REFERENCE_SCORE = 7200 (DDR4-3600 dual) = no penalty, no bonus.
 const rams = [
-  // ENTHUSIAST
-  { modelName: "G.Skill Trident Z5 RGB DDR5-7200 CL34 2×16GB",    type: "DDR5" as const, speedMhz: 7200, capacityGb: 32, channels: 2, latencyCl: 34, tier: "ENTHUSIAST" as const },
-  { modelName: "Corsair Dominator Titanium DDR5-6600 CL32 2×16GB", type: "DDR5" as const, speedMhz: 6600, capacityGb: 32, channels: 2, latencyCl: 32, tier: "ENTHUSIAST" as const },
-  // ULTRA
-  { modelName: "Corsair Vengeance DDR5-6000 CL30 2×16GB",          type: "DDR5" as const, speedMhz: 6000, capacityGb: 32, channels: 2, latencyCl: 30, tier: "ULTRA" as const },
-  { modelName: "G.Skill Trident Z5 DDR5-6400 CL32 2×16GB",         type: "DDR5" as const, speedMhz: 6400, capacityGb: 32, channels: 2, latencyCl: 32, tier: "ULTRA" as const },
-  // HIGH
-  { modelName: "Kingston Fury Beast DDR5-5600 CL36 2×16GB",        type: "DDR5" as const, speedMhz: 5600, capacityGb: 32, channels: 2, latencyCl: 36, tier: "HIGH" as const },
-  { modelName: "G.Skill Ripjaws V DDR4-3600 CL16 2×16GB",          type: "DDR4" as const, speedMhz: 3600, capacityGb: 32, channels: 2, latencyCl: 16, tier: "HIGH" as const },
-  // MID
-  { modelName: "Corsair Vengeance LPX DDR4-3200 CL16 2×8GB",       type: "DDR4" as const, speedMhz: 3200, capacityGb: 16, channels: 2, latencyCl: 16, tier: "MID" as const },
-  { modelName: "Kingston Fury Beast DDR5-4800 CL38 2×8GB",         type: "DDR5" as const, speedMhz: 4800, capacityGb: 16, channels: 2, latencyCl: 38, tier: "MID" as const },
-  // ENTRY
-  { modelName: "Kingston HyperX Fury DDR4-2666 CL16 2×8GB",        type: "DDR4" as const, speedMhz: 2666, capacityGb: 16, channels: 2, latencyCl: 16, tier: "ENTRY" as const },
-  { modelName: "Crucial DDR4-2400 CL17 2×4GB",                     type: "DDR4" as const, speedMhz: 2400, capacityGb: 8,  channels: 2, latencyCl: 17, tier: "ENTRY" as const },
-  // Single-channel configs — significant bottleneck for many users
-  { modelName: "Crucial DDR4-3200 CL22 1×16GB (Single Channel)",   type: "DDR4" as const, speedMhz: 3200, capacityGb: 16, channels: 1, latencyCl: 22, tier: "ENTRY" as const },
-  { modelName: "Samsung DDR4-2666 1×8GB (Single Channel)",         type: "DDR4" as const, speedMhz: 2666, capacityGb: 8,  channels: 1, latencyCl: 19, tier: "ENTRY" as const },
+  // ─── ENTHUSIAST ──────────────────────────────────────────────────────────
+  { modelName: "G.Skill Trident Z5 RGB DDR5-7200 CL34 2×16GB",              type: "DDR5" as const, speedMhz: 7200, capacityGb: 32, channels: 2, latencyCl: 34, tier: "ENTHUSIAST" as const },
+  { modelName: "Corsair Dominator Titanium DDR5-6600 CL32 2×16GB",           type: "DDR5" as const, speedMhz: 6600, capacityGb: 32, channels: 2, latencyCl: 32, tier: "ENTHUSIAST" as const },
+  // ─── ULTRA ───────────────────────────────────────────────────────────────
+  { modelName: "G.Skill Trident Z5 DDR5-6400 CL32 2×16GB",                  type: "DDR5" as const, speedMhz: 6400, capacityGb: 32, channels: 2, latencyCl: 32, tier: "ULTRA" as const },
+  { modelName: "Corsair Vengeance DDR5-6000 CL30 2×16GB",                    type: "DDR5" as const, speedMhz: 6000, capacityGb: 32, channels: 2, latencyCl: 30, tier: "ULTRA" as const },
+  { modelName: "G.Skill Ripjaws S5 DDR5-6000 CL30 2×16GB",                  type: "DDR5" as const, speedMhz: 6000, capacityGb: 32, channels: 2, latencyCl: 30, tier: "ULTRA" as const },
+  { modelName: "G.Skill Ripjaws V DDR4-4000 CL18 2×8GB",                    type: "DDR4" as const, speedMhz: 4000, capacityGb: 16, channels: 2, latencyCl: 18, tier: "ULTRA" as const },
+  // ─── HIGH ────────────────────────────────────────────────────────────────
+  { modelName: "Kingston Fury Beast DDR5-5600 CL36 2×16GB",                  type: "DDR5" as const, speedMhz: 5600, capacityGb: 32, channels: 2, latencyCl: 36, tier: "HIGH" as const },
+  { modelName: "Corsair Vengeance DDR5-5600 CL36 2×16GB",                    type: "DDR5" as const, speedMhz: 5600, capacityGb: 32, channels: 2, latencyCl: 36, tier: "HIGH" as const },
+  { modelName: "G.Skill Ripjaws V DDR4-3600 CL16 2×16GB",                   type: "DDR4" as const, speedMhz: 3600, capacityGb: 32, channels: 2, latencyCl: 16, tier: "HIGH" as const },
+  { modelName: "Corsair Vengeance LPX DDR4-3600 CL18 2×16GB",               type: "DDR4" as const, speedMhz: 3600, capacityGb: 32, channels: 2, latencyCl: 18, tier: "HIGH" as const },
+  // ─── MID ─────────────────────────────────────────────────────────────────
+  { modelName: "Kingston Fury Beast DDR5-4800 CL38 2×16GB",                  type: "DDR5" as const, speedMhz: 4800, capacityGb: 32, channels: 2, latencyCl: 38, tier: "MID" as const },
+  { modelName: "Corsair Vengeance DDR5-4800 CL40 2×16GB",                    type: "DDR5" as const, speedMhz: 4800, capacityGb: 32, channels: 2, latencyCl: 40, tier: "MID" as const },
+  { modelName: "Corsair Vengeance LPX DDR4-3200 CL16 2×16GB",               type: "DDR4" as const, speedMhz: 3200, capacityGb: 32, channels: 2, latencyCl: 16, tier: "MID" as const },
+  { modelName: "Corsair Vengeance LPX DDR4-3200 CL16 2×8GB",                type: "DDR4" as const, speedMhz: 3200, capacityGb: 16, channels: 2, latencyCl: 16, tier: "MID" as const },
+  { modelName: "Kingston Fury Beast DDR4-3200 CL16 2×16GB",                  type: "DDR4" as const, speedMhz: 3200, capacityGb: 32, channels: 2, latencyCl: 16, tier: "MID" as const },
+  { modelName: "Kingston Fury Beast DDR5-4800 CL38 2×8GB",                   type: "DDR5" as const, speedMhz: 4800, capacityGb: 16, channels: 2, latencyCl: 38, tier: "MID" as const },
+  // ─── ENTRY ───────────────────────────────────────────────────────────────
+  { modelName: "Crucial DDR5-4800 CL40 2×8GB",                               type: "DDR5" as const, speedMhz: 4800, capacityGb: 16, channels: 2, latencyCl: 40, tier: "ENTRY" as const },
+  { modelName: "TeamGroup T-Force Vulcan DDR5-4800 CL40 2×16GB",             type: "DDR5" as const, speedMhz: 4800, capacityGb: 32, channels: 2, latencyCl: 40, tier: "ENTRY" as const },
+  { modelName: "Corsair Vengeance LPX DDR4-2666 CL16 2×8GB",                type: "DDR4" as const, speedMhz: 2666, capacityGb: 16, channels: 2, latencyCl: 16, tier: "ENTRY" as const },
+  { modelName: "Kingston HyperX Fury DDR4-2666 CL16 2×8GB",                  type: "DDR4" as const, speedMhz: 2666, capacityGb: 16, channels: 2, latencyCl: 16, tier: "ENTRY" as const },
+  { modelName: "Crucial DDR4-2400 CL17 2×4GB",                               type: "DDR4" as const, speedMhz: 2400, capacityGb: 8,  channels: 2, latencyCl: 17, tier: "ENTRY" as const },
+  // ─── Single-channel configs (significant bottleneck) ─────────────────────
+  { modelName: "Crucial DDR5-4800 CL40 1×16GB (Single Channel)",             type: "DDR5" as const, speedMhz: 4800, capacityGb: 16, channels: 1, latencyCl: 40, tier: "ENTRY" as const },
+  { modelName: "Corsair Vengeance LPX DDR4-3200 CL16 1×16GB (Single Channel)", type: "DDR4" as const, speedMhz: 3200, capacityGb: 16, channels: 1, latencyCl: 16, tier: "ENTRY" as const },
+  { modelName: "Crucial DDR4-3200 CL22 1×16GB (Single Channel)",             type: "DDR4" as const, speedMhz: 3200, capacityGb: 16, channels: 1, latencyCl: 22, tier: "ENTRY" as const },
+  { modelName: "Samsung DDR4-2666 1×8GB (Single Channel)",                   type: "DDR4" as const, speedMhz: 2666, capacityGb: 8,  channels: 1, latencyCl: 19, tier: "ENTRY" as const },
 ];
 
 async function main() {

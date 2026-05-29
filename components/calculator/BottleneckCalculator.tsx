@@ -6,6 +6,7 @@ import type {
   CpuOption,
   GpuOption,
   RamOption,
+  RamTypeValue,
   Resolution,
 } from "@/types/hardware";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +16,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { BottleneckGauge } from "./BottleneckGauge";
 import { UpgradeCard } from "@/components/monetization/UpgradeCard";
@@ -39,12 +39,48 @@ const TIER_LABELS: Record<string, string> = {
   ENTHUSIAST: "Enthusiast",
 };
 
+const SOCKET_ORDER = ["AM4", "AM5", "LGA1200", "LGA1700", "LGA1851"] as const;
+const SOCKET_LABELS: Record<string, string> = {
+  AM4:    "AMD AM4 (Ryzen 5000 & older)",
+  AM5:    "AMD AM5 (Ryzen 7000/9000)",
+  LGA1200: "Intel LGA1200 (10th/11th Gen)",
+  LGA1700: "Intel LGA1700 (12th–14th Gen)",
+  LGA1851: "Intel LGA1851 (Core Ultra 200)",
+};
+
+// Which RAM types are valid for each socket.
+const SOCKET_RAM_COMPAT: Record<string, RamTypeValue[]> = {
+  AM4:    ["DDR4"],
+  AM5:    ["DDR5"],
+  LGA1200: ["DDR4"],
+  LGA1700: ["DDR4", "DDR5"],
+  LGA1851: ["DDR5"],
+};
+
 function groupByTier<T extends { tier: string }>(
   items: T[]
 ): { tier: string; items: T[] }[] {
   return TIER_ORDER.filter((t) => items.some((i) => i.tier === t)).map(
     (tier) => ({ tier, items: items.filter((i) => i.tier === tier) })
   );
+}
+
+function groupBySocket(
+  items: CpuOption[]
+): { socket: string; items: CpuOption[] }[] {
+  const present = [...new Set(items.map((c) => c.socket ?? "Unknown"))];
+  const ordered = SOCKET_ORDER.filter((s) => present.includes(s));
+  const rest = present.filter((s) => !SOCKET_ORDER.includes(s as never));
+  return [...ordered, ...rest].map((socket) => ({
+    socket,
+    items: items
+      .filter((c) => (c.socket ?? "Unknown") === socket)
+      .sort(
+        (a, b) =>
+          TIER_ORDER.indexOf(b.tier as never) -
+          TIER_ORDER.indexOf(a.tier as never)
+      ),
+  }));
 }
 
 const HEADLINE: Record<string, string> = {
@@ -101,14 +137,30 @@ export function BottleneckCalculator({
   const selectedGpu = gpus.find((g) => g.id === selectedGpuId);
   const selectedRam = rams.find((r) => r.id === selectedRamId);
 
+  const compatibleRamTypes: RamTypeValue[] | null = selectedCpu?.socket
+    ? (SOCKET_RAM_COMPAT[selectedCpu.socket] ?? null)
+    : null;
+  const compatibleRams = compatibleRamTypes
+    ? rams.filter((r) => compatibleRamTypes.includes(r.type))
+    : rams;
+
+  function handleCpuChange(v: string) {
+    setSelectedCpuId(v);
+    const newCpu = cpus.find((c) => c.id === v);
+    if (newCpu?.socket && selectedRam) {
+      const compat = SOCKET_RAM_COMPAT[newCpu.socket] ?? [];
+      if (!compat.includes(selectedRam.type)) setSelectedRamId("");
+    }
+  }
+
   const result =
     selectedCpu && selectedGpu
       ? calculateBottleneck(selectedCpu, selectedGpu, resolution, selectedRam)
       : null;
 
-  const cpuGroups = groupByTier(cpus);
+  const cpuGroups = groupBySocket(cpus);
   const gpuGroups = groupByTier(gpus);
-  const ramGroups = groupByTier(rams);
+  const ramGroups = groupByTier(compatibleRams);
 
   const showUpgrade =
     result && result.bottleneckComponent !== "Balanced" && selectedCpu && selectedGpu;
@@ -130,22 +182,25 @@ export function BottleneckCalculator({
             </Label>
             <Select
               value={selectedCpuId}
-              onValueChange={(v) => {
-                if (v !== null) setSelectedCpuId(v);
-              }}
+              onValueChange={(v) => { if (v !== null) handleCpuChange(v); }}
             >
               <SelectTrigger className="h-9 text-sm border-slate-200 w-full">
-                <SelectValue placeholder="Select CPU…" />
+                <span className={`flex-1 truncate text-left ${selectedCpu ? "" : "text-slate-400"}`}>
+                  {selectedCpu?.modelName ?? "Select CPU…"}
+                </span>
               </SelectTrigger>
               <SelectContent>
-                {cpuGroups.map(({ tier, items }) => (
-                  <div key={tier}>
+                {cpuGroups.map(({ socket, items }) => (
+                  <div key={socket}>
                     <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                      {TIER_LABELS[tier]}
+                      {SOCKET_LABELS[socket] ?? socket}
                     </div>
                     {items.map((cpu) => (
-                      <SelectItem key={cpu.id} value={cpu.id} className="text-sm">
+                      <SelectItem key={cpu.id} value={cpu.id} label={cpu.modelName} className="text-sm">
                         {cpu.modelName}
+                        <span className="ml-1.5 text-[10px] text-slate-400">
+                          {TIER_LABELS[cpu.tier]}
+                        </span>
                       </SelectItem>
                     ))}
                   </div>
@@ -166,7 +221,9 @@ export function BottleneckCalculator({
               }}
             >
               <SelectTrigger className="h-9 text-sm border-slate-200 w-full">
-                <SelectValue placeholder="Select GPU…" />
+                <span className={`flex-1 truncate text-left ${selectedGpu ? "" : "text-slate-400"}`}>
+                  {selectedGpu?.modelName ?? "Select GPU…"}
+                </span>
               </SelectTrigger>
               <SelectContent>
                 {gpuGroups.map(({ tier, items }) => (
@@ -175,7 +232,7 @@ export function BottleneckCalculator({
                       {TIER_LABELS[tier]}
                     </div>
                     {items.map((gpu) => (
-                      <SelectItem key={gpu.id} value={gpu.id} className="text-sm">
+                      <SelectItem key={gpu.id} value={gpu.id} label={gpu.modelName} className="text-sm">
                         {gpu.modelName}
                       </SelectItem>
                     ))}
@@ -189,9 +246,15 @@ export function BottleneckCalculator({
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
               RAM{" "}
-              <span className="normal-case font-normal text-slate-400">
-                (optional)
-              </span>
+              {compatibleRamTypes ? (
+                <span className="normal-case font-normal text-slate-400">
+                  ({compatibleRamTypes.join(" / ")} only)
+                </span>
+              ) : (
+                <span className="normal-case font-normal text-slate-400">
+                  (optional)
+                </span>
+              )}
             </Label>
             <Select
               value={selectedRamId}
@@ -200,7 +263,9 @@ export function BottleneckCalculator({
               }}
             >
               <SelectTrigger className="h-9 text-sm border-slate-200 w-full">
-                <SelectValue placeholder="Select RAM…" />
+                <span className={`flex-1 truncate text-left ${selectedRam ? "" : "text-slate-400"}`}>
+                  {selectedRam?.modelName ?? "Select RAM…"}
+                </span>
               </SelectTrigger>
               <SelectContent>
                 {ramGroups.map(({ tier, items }) => (
@@ -209,7 +274,7 @@ export function BottleneckCalculator({
                       {TIER_LABELS[tier]}
                     </div>
                     {items.map((ram) => (
-                      <SelectItem key={ram.id} value={ram.id} className="text-sm">
+                      <SelectItem key={ram.id} value={ram.id} label={ram.modelName} className="text-sm">
                         {ram.modelName}
                       </SelectItem>
                     ))}
@@ -300,6 +365,10 @@ export function BottleneckCalculator({
                 cpu={selectedCpu}
                 gpu={selectedGpu}
                 ram={selectedRam}
+                cpus={cpus}
+                gpus={gpus}
+                rams={rams}
+                resolution={resolution}
                 affiliateTag={affiliateTag}
               />
             )}

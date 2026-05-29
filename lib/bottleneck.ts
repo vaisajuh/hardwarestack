@@ -34,13 +34,33 @@ function ramUtilization(ram: RamOption): number {
   return Math.round(Math.min(100, (RAM_REFERENCE_SCORE / effective) * 80));
 }
 
+// Tier multiplier accounts for architectural advantages (cache bandwidth,
+// prefetch efficiency, IPC headroom) that PassMark single-thread doesn't capture.
+// An ENTHUSIAST CPU sustains far more FPS in real games than its benchmark implies.
+const TIER_CPU_SCALE: Record<string, number> = {
+  ENTRY: 1.0,
+  MID: 1.1,
+  HIGH: 1.25,
+  ULTRA: 1.4,
+  ENTHUSIAST: 1.6,
+};
+
+// CPU gaming throughput: single-core speed × core-count boost × tier scale.
+// log2(cores+1) gives diminishing returns: 4c→2.3×, 8c→3.2×, 16c→4.1×, 24c→4.6×
+function cpuGamingScore(cpu: CpuOption): number {
+  const single = cpu.singleCoreScore ?? 0;
+  const coreBoost = Math.log2((cpu.cores ?? 4) + 1);
+  const tierScale = TIER_CPU_SCALE[cpu.tier] ?? 1.0;
+  return single * coreBoost * tierScale;
+}
+
 export function calculateBottleneck(
   cpu: CpuOption,
   gpu: GpuOption,
   resolution: Resolution,
   ram?: RamOption
 ): BottleneckResult {
-  const rawCpuScore = cpu.singleCoreScore ?? 0;
+  const rawCpuScore = cpuGamingScore(cpu);
   const gpuBaseScore = gpu.rasterScore ?? 0;
 
   const rf = ram ? ramFactor(ram) : 1.0;
@@ -72,7 +92,7 @@ export function calculateBottleneck(
     // If the RAM penalty is significant enough that removing it would tip the
     // balance in the CPU's favour, the real culprit is RAM, not the CPU.
     const isRamBottleneck =
-      ram !== undefined && rf < 0.95 && rawCpuScore >= effectiveGpuScore;
+      ram !== undefined && rf < 0.95 && rawCpuScore / rf >= effectiveGpuScore;
 
     return {
       cpuUtilization: cpuUtil,

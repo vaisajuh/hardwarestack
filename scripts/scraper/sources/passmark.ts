@@ -40,13 +40,30 @@ async function scrapeSite(url: string): Promise<{ name: string; score: number; r
     .filter((e) => e.score > 0);
 }
 
-export async function scrapeCpus(limit = 300): Promise<RawCpuEntry[]> {
-  const rows = await scrapeSite("https://www.cpubenchmark.net/cpu_list.php");
-  // Rank 1 = highest performing CPU
-  return rows
-    .sort((a, b) => a.rank - b.rank)
-    .slice(0, limit)
-    .map(({ name, score, rank }) => ({ name, multiCoreScore: score, rank }));
+export async function scrapeCpus(limitPerVendor = 300): Promise<RawCpuEntry[]> {
+  // Scrape vendor-specific lists to avoid server chips (Xeon/EPYC) pushing
+  // desktop CPUs out of the top-N on the combined list.
+  const [intelRows, amdRows] = await Promise.all([
+    scrapeSite("https://www.cpubenchmark.net/cpu-list/intel"),
+    scrapeSite("https://www.cpubenchmark.net/cpu-list/amd"),
+  ]);
+
+  const toEntries = (rows: typeof intelRows) =>
+    rows
+      .sort((a, b) => a.rank - b.rank)
+      .slice(0, limitPerVendor)
+      .map(({ name, score, rank }) => ({ name, multiCoreScore: score, rank }));
+
+  const intel = toEntries(intelRows);
+  const amd = toEntries(amdRows);
+
+  // Merge and deduplicate by name
+  const seen = new Set<string>();
+  return [...intel, ...amd].filter(({ name }) => {
+    if (seen.has(name)) return false;
+    seen.add(name);
+    return true;
+  });
 }
 
 export async function scrapeGpus(limit = 200): Promise<RawGpuEntry[]> {
