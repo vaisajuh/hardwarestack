@@ -13,7 +13,8 @@
     "scraper:cpus": "npx tsx scripts/scraper/ingest.ts cpus",
     "scraper:gpus": "npx tsx scripts/scraper/ingest.ts gpus",
     "scraper:amazon": "npx tsx scripts/scraper/ingest.ts amazon",
-    "scraper:all": "npx tsx scripts/scraper/ingest.ts all"
+    "scraper:all": "npx tsx scripts/scraper/ingest.ts all",
+    "test": "vitest run"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
@@ -48,6 +49,7 @@
     "playwright": "^1.60.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.7"
   }
 }

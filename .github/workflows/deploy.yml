@@ -22,11 +22,17 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
+      - name: Audit
+        run: npm audit --audit-level=high
+
       - name: Lint
         run: npm run lint
 
       - name: Type-check
         run: npx tsc --noEmit
+
+      - name: Test
+        run: npm test
 
   deploy:
     name: Deploy to Fly.io
