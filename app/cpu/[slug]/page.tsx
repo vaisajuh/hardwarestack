@@ -12,7 +12,13 @@ import type { CpuOption, GpuOption } from "@/types/hardware";
 
 export const dynamic = "force-dynamic";
 
-const AFFILIATE_TAG = process.env.NEXT_PUBLIC_AMAZON_AFFILIATE_TAG ?? "";
+function pcPartPickerUrl(name: string) {
+  const q = name.replace("Intel Core ", "").replace(/AMD Ryzen \d+ /, "").replace("AMD Ryzen ", "");
+  return `https://pcpartpicker.com/search/?q=${encodeURIComponent(q)}`;
+}
+function googleShoppingUrl(name: string) {
+  return `https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=shop`;
+}
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -98,14 +104,6 @@ export default async function CpuDetailPage({ params }: Props) {
     ),
   }));
 
-  const retailLink = cpu.retailLinks[0];
-  const priceDisplay =
-    retailLink?.currentPrice != null
-      ? new Intl.NumberFormat("de-DE", {
-          style: "currency",
-          currency: retailLink.currency,
-        }).format(retailLink.currentPrice)
-      : null;
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:py-12">
@@ -280,36 +278,27 @@ export default async function CpuDetailPage({ params }: Props) {
           </div>
 
           {/* Buy */}
-          {retailLink && (
-            <div className="rounded-lg border border-slate-200 bg-white p-5 flex flex-col gap-3">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-slate-800">
-                  Buy on Amazon
-                </p>
-                <Badge
-                  variant="outline"
-                  className="shrink-0 text-[10px] text-slate-400 border-slate-200"
-                >
-                  Affiliate
-                </Badge>
-              </div>
-              {priceDisplay && (
-                <p className="text-xl font-bold text-slate-900">{priceDisplay}</p>
-              )}
-              <a
-                href={`https://www.amazon.de/dp/${retailLink.asin}?tag=${AFFILIATE_TAG}`}
-                target="_blank"
-                rel="noopener noreferrer sponsored"
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "sm" }),
-                  "no-underline"
-                )}
-              >
-                Check Price
-                <ExternalLink className="ml-1.5 h-3 w-3" />
-              </a>
-            </div>
-          )}
+          <div className="rounded-lg border border-slate-200 bg-white p-5 flex flex-col gap-3">
+            <p className="text-sm font-semibold text-slate-800">Find Best Price</p>
+            <a
+              href={pcPartPickerUrl(cpu.modelName)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "no-underline")}
+            >
+              PCPartPicker
+              <ExternalLink className="ml-1.5 h-3 w-3" />
+            </a>
+            <a
+              href={googleShoppingUrl(cpu.modelName)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(buttonVariants({ variant: "default", size: "sm" }), "no-underline bg-slate-900 hover:bg-slate-700")}
+            >
+              Google Shopping
+              <ExternalLink className="ml-1.5 h-3 w-3" />
+            </a>
+          </div>
 
           {/* All CPUs link */}
           <Link

@@ -6,6 +6,7 @@ export async function POST(req: NextRequest) {
   if (token !== process.env.REVALIDATE_TOKEN) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  revalidateTag("hardware");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (revalidateTag as any)("hardware");
   return NextResponse.json({ revalidated: true });
 }
