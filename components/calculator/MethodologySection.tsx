@@ -10,7 +10,7 @@ export function MethodologySection() {
       </p>
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <div className="rounded-lg border border-slate-200 bg-white p-5">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-3 flex items-center gap-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-white">
               1
@@ -24,7 +24,7 @@ export function MethodologySection() {
             throughput — single-thread speed matters most, but core count and
             architectural efficiency add headroom.
           </p>
-          <code className="block rounded bg-slate-50 border border-slate-100 px-3 py-2 text-[11px] text-slate-700 leading-relaxed">
+          <code className="block rounded-md bg-slate-900 px-3 py-2.5 text-[11px] text-slate-200 leading-relaxed font-mono">
             score = singleCore × log₂(cores + 1) × tierScale
           </code>
           <p className="mt-2 text-[11px] text-slate-400">
@@ -33,7 +33,7 @@ export function MethodologySection() {
           </p>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-5">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-3 flex items-center gap-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-white">
               2
@@ -47,7 +47,7 @@ export function MethodologySection() {
             multiplier — higher resolutions demand proportionally more from the
             GPU, shifting the bottleneck toward the graphics card.
           </p>
-          <code className="block rounded bg-slate-50 border border-slate-100 px-3 py-2 text-[11px] text-slate-700 leading-relaxed">
+          <code className="block rounded-md bg-slate-900 px-3 py-2.5 text-[11px] text-slate-200 leading-relaxed font-mono">
             effectiveGPU = rasterScore / resolutionRatio
           </code>
           <p className="mt-2 text-[11px] text-slate-400">
@@ -55,7 +55,7 @@ export function MethodologySection() {
           </p>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-5">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-3 flex items-center gap-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-white">
               3
@@ -69,7 +69,7 @@ export function MethodologySection() {
             is DDR4-3600 dual-channel — no penalty, no bonus. Below that,
             effective CPU score is reduced by up to 25%.
           </p>
-          <code className="block rounded bg-slate-50 border border-slate-100 px-3 py-2 text-[11px] text-slate-700 leading-relaxed">
+          <code className="block rounded-md bg-slate-900 px-3 py-2.5 text-[11px] text-slate-200 leading-relaxed font-mono">
             factor = 0.75 + 0.25 × min(1, bandwidth / 7200)
             <br />
             effectiveCPU = cpuScore × factor
@@ -79,7 +79,7 @@ export function MethodologySection() {
           </p>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-5">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-3 flex items-center gap-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-white">
               4
@@ -93,7 +93,7 @@ export function MethodologySection() {
             Below 10% the system is considered well-matched. The weaker
             component is identified as the bottleneck.
           </p>
-          <code className="block rounded bg-slate-50 border border-slate-100 px-3 py-2 text-[11px] text-slate-700 leading-relaxed">
+          <code className="block rounded-md bg-slate-900 px-3 py-2.5 text-[11px] text-slate-200 leading-relaxed font-mono">
             gap = |cpuScore − gpuScore| / max(both) × 100
           </code>
           <p className="mt-2 text-[11px] text-slate-400">

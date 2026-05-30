@@ -175,7 +175,7 @@ export function BottleneckCalculator({
         <CardContent className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {/* CPU */}
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <Label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
               CPU
             </Label>
             <Select
@@ -209,7 +209,7 @@ export function BottleneckCalculator({
 
           {/* GPU */}
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <Label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
               GPU
             </Label>
             <Select
@@ -242,7 +242,7 @@ export function BottleneckCalculator({
 
           {/* RAM */}
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <Label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
               RAM{" "}
               {compatibleRamTypes ? (
                 <span className="normal-case font-normal text-slate-400">
@@ -284,18 +284,18 @@ export function BottleneckCalculator({
 
           {/* Resolution */}
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <Label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
               Resolution
             </Label>
-            <div className="flex h-9 items-center gap-1 rounded-md border border-slate-200 bg-white px-1">
+            <div className="flex h-9 items-center rounded-md border border-slate-200 bg-slate-100 p-0.5">
               {RESOLUTIONS.map((res) => (
                 <button
                   key={res}
                   onClick={() => setResolution(res)}
-                  className={`flex-1 rounded text-sm font-medium transition-colors h-7 ${
+                  className={`flex-1 rounded text-xs font-semibold transition-all h-full ${
                     resolution === res
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-500 hover:text-slate-800"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
                   }`}
                 >
                   {res}
@@ -373,15 +373,15 @@ export function BottleneckCalculator({
         </Card>
       ) : (
         /* Empty prompt */
-        <div className="rounded-lg border border-dashed border-slate-200 bg-white px-6 py-10 text-center">
-          <div className="flex justify-center gap-4 mb-4">
+        <div className="rounded-lg border border-slate-200 bg-slate-50/70 px-6 py-9 text-center">
+          <div className="flex justify-center gap-5 mb-3.5">
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="flex flex-col items-center gap-2 opacity-30"
+                className="flex flex-col items-center gap-2 opacity-20"
               >
-                <div className="h-16 w-16 rounded-full border-4 border-slate-300" />
-                <div className="h-2 w-12 rounded bg-slate-200" />
+                <div className="h-12 w-12 rounded-full border-[3px] border-slate-400" />
+                <div className="h-1.5 w-10 rounded bg-slate-300" />
               </div>
             ))}
           </div>
