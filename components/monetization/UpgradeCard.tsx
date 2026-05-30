@@ -62,7 +62,8 @@ function findMinimalUpgrade(
         return candidate;
       }
     }
-    return null;
+    // At high resolutions no GPU may fully resolve the bottleneck — suggest the strongest available.
+    return candidates[candidates.length - 1] ?? null;
   }
 
   if (bottleneckComponent === "CPU") {
@@ -86,7 +87,7 @@ function findMinimalUpgrade(
         return candidate;
       }
     }
-    return null;
+    return candidates[candidates.length - 1] ?? null;
   }
 
   if (bottleneckComponent === "RAM" && ram) {
@@ -99,17 +100,18 @@ function findMinimalUpgrade(
         return candidate;
       }
     }
-    return null;
+    return candidates[candidates.length - 1] ?? null;
   }
 
   return null;
 }
 
-const DESCRIPTIONS: Record<Exclude<BottleneckComponent, "Balanced">, string> = {
-  CPU: "Your processor is the limiting factor. A faster CPU will unlock your GPU's full potential.",
-  GPU: "Your graphics card can't keep up at this resolution. A GPU upgrade will directly improve frame rates.",
-  RAM: "Slow or single-channel RAM is starving your CPU. Upgrading to faster dual-channel memory can deliver measurable FPS gains.",
-};
+function gpuDescription(resolution: Resolution): string {
+  if (resolution === "4K") {
+    return "4K is extremely GPU-demanding. No single upgrade may fully close the gap — this is the strongest option in our database.";
+  }
+  return "Your graphics card can't keep up at this resolution. A GPU upgrade will directly improve frame rates.";
+}
 
 export function UpgradeCard({
   bottleneckComponent,
@@ -141,7 +143,11 @@ export function UpgradeCard({
           Upgrade Recommendation
         </CardTitle>
         <p className="text-xs text-slate-500">
-          {DESCRIPTIONS[bottleneckComponent]}
+          {bottleneckComponent === "GPU"
+            ? gpuDescription(resolution)
+            : bottleneckComponent === "CPU"
+              ? "Your processor is the limiting factor. A faster CPU will unlock your GPU's full potential."
+              : "Slow or single-channel RAM is starving your CPU. Upgrading to faster dual-channel memory can deliver measurable FPS gains."}
         </p>
       </CardHeader>
       <CardContent className="pt-0">
