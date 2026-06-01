@@ -26,8 +26,8 @@
 #   toggle "Pooled connection" on   → NEON_POOL_URL    (use for app runtime)
 #
 # Usage:
-#   PROD_DB_PASSWORD=<pw> NEON_DIRECT_URL="postgresql://..." NEON_POOL_URL="postgresql://..." \
-#     ./scripts/migrate-to-neon.sh
+#   ./scripts/migrate-to-neon.sh              # dump from Fly production
+#   ./scripts/migrate-to-neon.sh --from-local # dump from local DB (skips Fly proxy/WireGuard)
 
 set -euo pipefail
 
@@ -45,12 +45,18 @@ APP="hardwarestack"
 DB_APP="hardwarestack-db"
 PROXY_PORT=15432
 DUMP_FILE="$(mktemp /tmp/hardwarestack-neon-XXXXXX.sql)"
+FROM_LOCAL=false
+
+for arg in "$@"; do
+  [[ "$arg" == "--from-local" ]] && FROM_LOCAL=true
+done
 
 # ── Validate inputs ────────────────────────────────────────────────────────────
 
-if [[ -z "${PROD_DB_PASSWORD:-}" ]]; then
+if [[ "$FROM_LOCAL" == false && -z "${PROD_DB_PASSWORD:-}" ]]; then
   echo "Error: PROD_DB_PASSWORD is not set."
   echo "  Get it with: flyctl postgres show -a ${DB_APP}"
+  echo "  Or use --from-local to dump from your local database instead."
   exit 1
 fi
 
@@ -100,20 +106,24 @@ wait_for_port() {
   exit 1
 }
 
-# ── 1. Dump production ─────────────────────────────────────────────────────────
+# ── 1. Dump source database ────────────────────────────────────────────────────
 
-echo "==> Starting Fly proxy on port ${PROXY_PORT}..."
-flyctl proxy "${PROXY_PORT}:5432" -a "$DB_APP" &
-PROXY_PID=$!
+if [[ "$FROM_LOCAL" == true ]]; then
+  LOCAL_URL="${DATABASE_URL:-postgresql://hardwarestack:hardwarestack@localhost:5432/hardwarestack}"
+  echo "==> Dumping local database (${LOCAL_URL%%@*}@...)..."
+  pg_dump --no-owner --no-acl "$LOCAL_URL" > "$DUMP_FILE"
+else
+  echo "==> Starting Fly proxy on port ${PROXY_PORT}..."
+  flyctl proxy "${PROXY_PORT}:5432" -a "$DB_APP" &
+  PROXY_PID=$!
+  wait_for_port "$PROXY_PORT"
+  echo "==> Dumping production database..."
+  pg_dump --no-owner --no-acl "$PROD_URL" > "$DUMP_FILE"
+  kill "$PROXY_PID" 2>/dev/null || true
+  unset PROXY_PID
+fi
 
-wait_for_port "$PROXY_PORT"
-
-echo "==> Dumping production database..."
-pg_dump --no-owner --no-acl "$PROD_URL" > "$DUMP_FILE"
 echo "    $(wc -l < "$DUMP_FILE") lines, $(du -sh "$DUMP_FILE" | cut -f1)"
-
-kill "$PROXY_PID" 2>/dev/null || true
-unset PROXY_PID
 
 # ── 2. Restore to Neon ────────────────────────────────────────────────────────
 
