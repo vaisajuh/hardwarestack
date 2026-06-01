@@ -44,7 +44,6 @@ npx prisma studio         # GUI for the database
 |---|---|
 | `DATABASE_URL` | PostgreSQL connection string (pooled for app runtime) |
 | `DIRECT_URL` | Direct connection string — required for Prisma migrations (bypasses PgBouncer) |
-| `NEXT_PUBLIC_AMAZON_AFFILIATE_TAG` | Amazon Associates tag used in affiliate links |
 | `REVALIDATE_TOKEN` | Secret for `POST /api/revalidate` cache invalidation endpoint |
 | `ANTHROPIC_API_KEY` | Claude API key — scraper pipeline only, never exposed to the browser |
 
