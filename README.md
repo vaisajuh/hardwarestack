@@ -43,7 +43,7 @@ npx prisma studio         # GUI for the database
 | Variable | Description |
 |---|---|
 | `DATABASE_URL` | PostgreSQL connection string (pooled for app runtime) |
-| `DIRECT_URL` | Direct connection string — required for Prisma migrations (bypasses PgBouncer) |
+| `DIRECT_URL` | Direct connection string — required for Prisma migrations (bypasses connection poolers) |
 | `REVALIDATE_TOKEN` | Secret for `POST /api/revalidate` cache invalidation endpoint |
 | `ANTHROPIC_API_KEY` | Claude API key — scraper pipeline only, never exposed to the browser |
 
