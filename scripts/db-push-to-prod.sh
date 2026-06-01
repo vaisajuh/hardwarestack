@@ -12,6 +12,15 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="${SCRIPT_DIR}/../.env.local"
+if [[ -f "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+fi
+
 APP="hardwarestack"
 DB_APP="hardwarestack-db"
 LOCAL_URL="${DATABASE_URL:-postgresql://hardwarestack:hardwarestack@localhost:5432/hardwarestack}"

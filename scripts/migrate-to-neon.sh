@@ -31,6 +31,16 @@
 
 set -euo pipefail
 
+# Load .env.local from repo root if it exists
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="${SCRIPT_DIR}/../.env.local"
+if [[ -f "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+fi
+
 APP="hardwarestack"
 DB_APP="hardwarestack-db"
 PROXY_PORT=15432
