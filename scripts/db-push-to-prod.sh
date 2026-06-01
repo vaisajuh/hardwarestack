@@ -35,11 +35,31 @@ fi
 
 PROD_URL="postgresql://postgres:${PROD_DB_PASSWORD}@localhost:${PROXY_PORT}/hardwarestack"
 
+export PATH="$PATH:$HOME/.fly/bin"
+
 cleanup() {
   rm -f "$DUMP_FILE"
   [[ -n "${PROXY_PID:-}" ]] && kill "$PROXY_PID" 2>/dev/null || true
 }
 trap cleanup EXIT
+
+wait_for_port() {
+  local port="$1"
+  local max=30
+  echo -n "    Waiting for proxy"
+  for i in $(seq 1 $max); do
+    if nc -z localhost "$port" 2>/dev/null; then
+      echo " ready."
+      return 0
+    fi
+    echo -n "."
+    sleep 1
+  done
+  echo ""
+  echo "Error: proxy did not become ready on port ${port} after ${max}s."
+  echo "  Try: flyctl wireguard reset && flyctl wireguard create"
+  exit 1
+}
 
 echo "==> Dumping local database..."
 pg_dump --no-owner --no-acl "$LOCAL_URL" > "$DUMP_FILE"
@@ -48,7 +68,7 @@ echo "    $(du -sh "$DUMP_FILE" | cut -f1) written to $DUMP_FILE"
 echo "==> Starting Fly proxy on port ${PROXY_PORT}..."
 flyctl proxy "${PROXY_PORT}:5432" -a "$DB_APP" &
 PROXY_PID=$!
-sleep 3
+wait_for_port "$PROXY_PORT"
 
 echo "==> Truncating production tables..."
 psql "$PROD_URL" -c 'TRUNCATE "RetailLink", "Cpu", "Gpu", "Ram" CASCADE;'

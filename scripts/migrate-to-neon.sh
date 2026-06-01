@@ -69,6 +69,9 @@ fi
 
 PROD_URL="postgresql://postgres:${PROD_DB_PASSWORD}@localhost:${PROXY_PORT}/hardwarestack"
 
+# Ensure flyctl is on PATH (fish users add it here)
+export PATH="$PATH:$HOME/.fly/bin"
+
 # ── Cleanup on exit ────────────────────────────────────────────────────────────
 
 cleanup() {
@@ -77,12 +80,33 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# ── Helper: wait until a local TCP port accepts connections ───────────────────
+
+wait_for_port() {
+  local port="$1"
+  local max=30
+  echo -n "    Waiting for proxy"
+  for i in $(seq 1 $max); do
+    if nc -z localhost "$port" 2>/dev/null; then
+      echo " ready."
+      return 0
+    fi
+    echo -n "."
+    sleep 1
+  done
+  echo ""
+  echo "Error: proxy did not become ready on port ${port} after ${max}s."
+  echo "  Try: flyctl wireguard reset && flyctl wireguard create"
+  exit 1
+}
+
 # ── 1. Dump production ─────────────────────────────────────────────────────────
 
 echo "==> Starting Fly proxy on port ${PROXY_PORT}..."
 flyctl proxy "${PROXY_PORT}:5432" -a "$DB_APP" &
 PROXY_PID=$!
-sleep 3
+
+wait_for_port "$PROXY_PORT"
 
 echo "==> Dumping production database..."
 pg_dump --no-owner --no-acl "$PROD_URL" > "$DUMP_FILE"
