@@ -1,21 +1,33 @@
 #!/usr/bin/env bash
 # Migrate production database from Fly MPG to Neon.
 #
-# Steps this script performs:
+# Steps:
 #   1. Dump the current production DB via Fly proxy
-#   2. Restore the dump into Neon
-#   3. Update DATABASE_URL secret on the Fly app
+#   2. Restore the dump into Neon (via direct connection)
+#   3. Update Fly secrets (DATABASE_URL + DIRECT_URL)
 #   4. Restart the app
 #
 # Prerequisites:
 #   flyctl in PATH  (fish: fish_add_path ~/.fly/bin)
 #   pg_dump / psql installed
-#   PROD_DB_PASSWORD env var  — get with: flyctl postgres show -a hardwarestack-db
-#   NEON_URL env var          — copy "Connection string" from neon.tech dashboard
-#                               looks like: postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
+#
+# Required env vars:
+#   PROD_DB_PASSWORD   — Fly MPG password: flyctl postgres show -a hardwarestack-db
+#   NEON_DIRECT_URL    — Direct (non-pooled) connection string from Neon dashboard
+#                        e.g. postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
+#
+# Optional env vars:
+#   NEON_POOL_URL      — Pooled connection string from Neon dashboard (recommended for runtime)
+#                        e.g. postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require
+#                        If omitted, DATABASE_URL will be set to NEON_DIRECT_URL.
+#
+# Neon dashboard → your project → Connection Details
+#   toggle "Pooled connection" off  → NEON_DIRECT_URL  (use for migrations / pg restore)
+#   toggle "Pooled connection" on   → NEON_POOL_URL    (use for app runtime)
 #
 # Usage:
-#   PROD_DB_PASSWORD=<pw> NEON_URL=<neon-conn-str> ./scripts/migrate-to-neon.sh
+#   PROD_DB_PASSWORD=<pw> NEON_DIRECT_URL="postgresql://..." NEON_POOL_URL="postgresql://..." \
+#     ./scripts/migrate-to-neon.sh
 
 set -euo pipefail
 
@@ -32,10 +44,17 @@ if [[ -z "${PROD_DB_PASSWORD:-}" ]]; then
   exit 1
 fi
 
-if [[ -z "${NEON_URL:-}" ]]; then
-  echo "Error: NEON_URL is not set."
-  echo "  Copy the connection string from your Neon project dashboard."
+if [[ -z "${NEON_DIRECT_URL:-}" ]]; then
+  echo "Error: NEON_DIRECT_URL is not set."
+  echo "  In the Neon dashboard: Connection Details → disable 'Pooled connection' → copy string."
   exit 1
+fi
+
+# Use pooled URL for app runtime if provided, otherwise fall back to direct.
+RUNTIME_URL="${NEON_POOL_URL:-$NEON_DIRECT_URL}"
+
+if [[ -z "${NEON_POOL_URL:-}" ]]; then
+  echo "Warning: NEON_POOL_URL not set — using direct URL for runtime (fine for low traffic)."
 fi
 
 PROD_URL="postgresql://postgres:${PROD_DB_PASSWORD}@localhost:${PROXY_PORT}/hardwarestack"
@@ -59,21 +78,30 @@ echo "==> Dumping production database..."
 pg_dump --no-owner --no-acl "$PROD_URL" > "$DUMP_FILE"
 echo "    $(wc -l < "$DUMP_FILE") lines, $(du -sh "$DUMP_FILE" | cut -f1)"
 
-# Stop proxy — no longer needed
 kill "$PROXY_PID" 2>/dev/null || true
 unset PROXY_PID
 
 # ── 2. Restore to Neon ────────────────────────────────────────────────────────
 
-echo "==> Restoring dump to Neon..."
-# Neon requires SSL; psql picks it up from the connection string (?sslmode=require)
-psql "$NEON_URL" -f "$DUMP_FILE"
+echo "==> Restoring dump to Neon (direct connection)..."
+psql "$NEON_DIRECT_URL" -f "$DUMP_FILE"
 echo "    Restore complete."
 
-# ── 3. Update Fly secret ──────────────────────────────────────────────────────
+# ── 3. Update Fly secrets ─────────────────────────────────────────────────────
 
-echo "==> Updating DATABASE_URL secret on Fly app '${APP}'..."
-flyctl secrets set DATABASE_URL="$NEON_URL" --app "$APP"
+echo "==> Updating Fly secrets..."
+if [[ -n "${NEON_POOL_URL:-}" ]]; then
+  # Set pooled URL for runtime queries, direct URL for Prisma migrate
+  flyctl secrets set \
+    DATABASE_URL="$NEON_POOL_URL" \
+    DIRECT_URL="$NEON_DIRECT_URL" \
+    --app "$APP"
+  echo "    DATABASE_URL → pooled connection"
+  echo "    DIRECT_URL   → direct connection (used by prisma migrate)"
+else
+  flyctl secrets set DATABASE_URL="$NEON_DIRECT_URL" --app "$APP"
+  echo "    DATABASE_URL → direct connection"
+fi
 
 # ── 4. Restart ────────────────────────────────────────────────────────────────
 
@@ -87,8 +115,8 @@ echo "Migration complete."
 echo ""
 echo "Next steps:"
 echo "  1. Verify the app works: https://${APP}.fly.dev"
-echo "  2. Once confirmed, destroy the old Postgres cluster:"
+echo "  2. Once confirmed, destroy the Fly MPG cluster (~\$17/month saved):"
 echo "     flyctl postgres destroy ${DB_APP}"
 echo ""
-echo "  Also update your local .env.local DATABASE_URL if you want to"
-echo "  develop against Neon instead of a local Postgres."
+echo "  If you set DIRECT_URL, also update prisma.config.ts to read it:"
+echo "    url: process.env.DIRECT_URL ?? process.env.DATABASE_URL"
