@@ -1,8 +1,8 @@
 # HardwareStack
 
-PC hardware bottleneck calculator with affiliate upgrade recommendations. Select your CPU, GPU, and RAM to see which component is holding back your system at 1080p, 1440p, or 4K — and get a direct upgrade suggestion with an Amazon price link.
+PC hardware bottleneck calculator with upgrade recommendations. Select your CPU, GPU, and RAM to see which component is holding back your system at 1080p, 1440p, or 4K — and get a direct upgrade suggestion with links to Google Shopping and PCPartPicker.
 
-Live at **[hardwarestack.fly.dev](https://hardwarestack.fly.dev)**
+Live at **[www.hardwarestack.com](https://www.hardwarestack.com)**
 
 ## Stack
 
