@@ -10,7 +10,7 @@ const geist = Geist({
 
 export const metadata: Metadata = {
   verification: {
-    google: "google937f05112de8e31a",
+    google: "lHY5KD4aEUvkp5Cc5yjZikNe3oA9vkXERUcIy3UVma0",
   },
   title: {
     default: "PC Bottleneck Calculator — HardwareStack",
