@@ -9,6 +9,9 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
+  verification: {
+    google: "google937f05112de8e31a",
+  },
   title: {
     default: "PC Bottleneck Calculator — HardwareStack",
     template: "%s — HardwareStack",
