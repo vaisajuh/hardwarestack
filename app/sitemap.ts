@@ -1,4 +1,6 @@
 import type { MetadataRoute } from "next";
+
+export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { toSlug } from "@/lib/slug";
 
