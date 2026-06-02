@@ -87,6 +87,9 @@ export default function RootLayout({
                   summit.dragon4613@eagereverest.com
                 </a>
               </span>
+              <Link href="/terms" className="underline hover:text-slate-900">
+                Terms of Use
+              </Link>
             </div>
           </div>
         </footer>
