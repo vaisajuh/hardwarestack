@@ -2,7 +2,7 @@
 
 PC hardware bottleneck calculator with upgrade recommendations. Select your CPU, GPU, and RAM to see which component is holding back your system at 1080p, 1440p, or 4K — and get a direct upgrade suggestion with links to Google Shopping and PCPartPicker.
 
-Live at **[www.hardwarestack.com](https://www.hardwarestack.dev)**
+Live at **[www.hardwarestack.dev](https://www.hardwarestack.dev)**
 
 ## Stack
 
