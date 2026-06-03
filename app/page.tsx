@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { BottleneckCalculator } from "@/components/calculator/BottleneckCalculator";
 import { MethodologySection } from "@/components/calculator/MethodologySection";
-import { SystemArchitectureVisualizer } from "@/components/system-architecture-visualizer";
+import { CalculatorSection } from "@/components/CalculatorSection";
 import type { CpuOption, GpuOption, RamOption } from "@/types/hardware";
 
 export const dynamic = "force-dynamic";
@@ -97,24 +96,15 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </p>
         </div>
       ) : (
-        <>
-          <BottleneckCalculator
-            cpus={cpus}
-            gpus={gpus}
-            rams={rams}
-            defaultCpuId={cpuId}
-            defaultGpuId={gpuId}
-          />
+        <CalculatorSection
+          cpus={cpus}
+          gpus={gpus}
+          rams={rams}
+          defaultCpuId={cpuId}
+          defaultGpuId={gpuId}
+        >
           <MethodologySection />
-
-          <section className="mt-12">
-            <h2 className="text-lg font-bold text-slate-900 mb-1">How Data Moves in Your PC</h2>
-            <p className="text-sm text-slate-500 mb-5">
-              Select a workload to see which buses are under load and how data flows between components.
-            </p>
-            <SystemArchitectureVisualizer />
-          </section>
-        </>
+        </CalculatorSection>
       )}
     </main>
   );

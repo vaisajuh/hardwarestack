@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { calculateBottleneck } from "@/lib/bottleneck";
 import type {
   CpuOption,
@@ -21,6 +21,12 @@ interface Props {
   rams: RamOption[];
   defaultCpuId?: string;
   defaultGpuId?: string;
+  onResultChange?: (
+    result: import("@/types/hardware").BottleneckResult | null,
+    cpu: CpuOption | null,
+    gpu: GpuOption | null,
+    resolution: Resolution
+  ) => void;
 }
 
 const RESOLUTIONS: Resolution[] = ["1080p", "1440p", "4K"];
@@ -116,6 +122,7 @@ export function BottleneckCalculator({
   rams,
   defaultCpuId,
   defaultGpuId,
+  onResultChange,
 }: Props) {
   const [selectedCpuId, setSelectedCpuId] = useState(
     defaultCpuId && cpus.some((c) => c.id === defaultCpuId) ? defaultCpuId : ""
@@ -150,6 +157,18 @@ export function BottleneckCalculator({
     selectedCpu && selectedGpu
       ? calculateBottleneck(selectedCpu, selectedGpu, resolution, selectedRam)
       : null;
+
+  const onResultChangeRef = useRef(onResultChange);
+  onResultChangeRef.current = onResultChange;
+  useEffect(() => {
+    onResultChangeRef.current?.(
+      result,
+      selectedCpu ?? null,
+      selectedGpu ?? null,
+      resolution
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCpuId, selectedGpuId, selectedRamId, resolution]);
 
   const cpuGroups = groupBySocket(cpus);
   const gpuGroups = groupByTier(gpus);

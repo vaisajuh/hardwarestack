@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Cpu, Monitor, MemoryStick, HardDrive } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { LiveData } from "@/components/CalculatorSection";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 type Workload = "Idle" | "Standard Gaming" | "DirectStorage" | "AI Training";
+type ActiveWorkload = Workload | "Your Build";
 
 interface NodeDef {
   x: number; y: number; w: number; h: number;
@@ -153,18 +155,109 @@ function DataPacket({
   );
 }
 
+// ── Live "Your Build" config ─────────────────────────────────────────────────
+
+function shortName(name: string): string {
+  return name
+    .replace("Intel Core ", "").replace("AMD Ryzen ", "Ryzen ")
+    .replace("NVIDIA GeForce ", "").replace("AMD Radeon ", "");
+}
+
+const NODE_BOTTLENECK_BORDER: Record<string, Record<string, string>> = {
+  CPU:      { cpu: "border-red-400 border-2",    gpu: "border-slate-200", ram: "border-slate-200", nvme: "border-slate-200" },
+  GPU:      { cpu: "border-slate-200",            gpu: "border-red-400 border-2", ram: "border-slate-200", nvme: "border-slate-200" },
+  RAM:      { cpu: "border-slate-200",            gpu: "border-slate-200", ram: "border-amber-400 border-2", nvme: "border-slate-200" },
+  Balanced: { cpu: "border-emerald-400 border-2", gpu: "border-emerald-400 border-2", ram: "border-slate-200", nvme: "border-slate-200" },
+};
+
+function buildLiveConfig(liveData: LiveData): WorkloadDef {
+  const { result, cpuName, gpuName, resolution } = liveData;
+  const { cpuUtilization, gpuUtilization, bottleneckComponent } = result;
+
+  const red    = "#ef4444";
+  const amber  = "#f59e0b";
+  const green  = "#10b981";
+  const slate  = "#94a3b8";
+
+  let streams: StreamDef[];
+
+  if (bottleneckComponent === "CPU") {
+    streams = [
+      { points: PATHS["cpu-ram"].points,  reversed: false, count: 4, color: red,   duration: 0.7 },
+      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 3, color: red,   duration: 0.7 },
+      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 2, color: amber, duration: 1.1 },
+      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 2, color: slate, duration: 1.3 },
+    ];
+  } else if (bottleneckComponent === "GPU") {
+    streams = [
+      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 4, color: red,   duration: 0.6 },
+      { points: PATHS["cpu-gpu"].points,  reversed: true,  count: 1, color: slate, duration: 1.5 },
+      { points: PATHS["cpu-ram"].points,  reversed: false, count: 2, color: slate, duration: 1.2 },
+      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 1, color: slate, duration: 1.2 },
+    ];
+  } else if (bottleneckComponent === "RAM") {
+    streams = [
+      { points: PATHS["cpu-ram"].points,  reversed: false, count: 3, color: amber, duration: 0.9 },
+      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 3, color: amber, duration: 0.9 },
+      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 1, color: slate, duration: 1.8 },
+    ];
+  } else {
+    // Balanced
+    streams = [
+      { points: PATHS["cpu-ram"].points,  reversed: false, count: 3, color: green, duration: 0.8 },
+      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 3, color: green, duration: 0.8 },
+      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 4, color: green, duration: 0.7 },
+      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 2, color: green, duration: 1.2 },
+    ];
+  }
+
+  const cpu = shortName(cpuName);
+  const gpu = shortName(gpuName);
+  const descriptions: Record<string, string> = {
+    CPU:      `${cpu} is the bottleneck at ${resolution} (CPU ${cpuUtilization}% / GPU ${gpuUtilization}%). The CPU buses are saturated while ${gpu} is underutilized — it's waiting for data that can't arrive fast enough.`,
+    GPU:      `${gpu} is the bottleneck at ${resolution} (CPU ${cpuUtilization}% / GPU ${gpuUtilization}%). The GPU is fully saturated and the PCIe lane is under heavy load, while ${cpu} still has headroom.`,
+    RAM:      `Slow RAM is the bottleneck at ${resolution}. The memory bus is the constraint, starving both the CPU and GPU of the data they need.`,
+    Balanced: `${cpu} and ${gpu} are well matched at ${resolution} (CPU ${cpuUtilization}% / GPU ${gpuUtilization}%). Both components run near capacity with balanced traffic across all buses.`,
+  };
+
+  return { streams, description: descriptions[bottleneckComponent] ?? "" };
+}
+
 // ── SystemArchitectureVisualizer ─────────────────────────────────────────────
 
 const WORKLOAD_OPTIONS: Workload[] = ["Idle", "Standard Gaming", "DirectStorage", "AI Training"];
 
-export function SystemArchitectureVisualizer() {
-  const [workload, setWorkload] = useState<Workload>("Standard Gaming");
-  const config = WORKLOADS[workload];
+export function SystemArchitectureVisualizer({ liveData }: { liveData?: LiveData | null }) {
+  const [workload, setWorkload] = useState<ActiveWorkload>("Standard Gaming");
+
+  // Auto-switch to "Your Build" when the calculator produces a result
+  useEffect(() => {
+    if (liveData) setWorkload("Your Build");
+    else if (workload === "Your Build") setWorkload("Standard Gaming");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveData]);
+
+  const config = workload === "Your Build" && liveData
+    ? buildLiveConfig(liveData)
+    : WORKLOADS[workload as Workload];
 
   return (
     <div className="flex flex-col gap-5">
       {/* Workload selector */}
       <div className="flex flex-wrap gap-2">
+        {liveData && (
+          <button
+            onClick={() => setWorkload("Your Build")}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+              workload === "Your Build"
+                ? "bg-slate-900 text-white"
+                : "bg-white border border-slate-300 text-slate-600 hover:text-slate-900 hover:border-slate-400"
+            }`}
+          >
+            Your Build ✦
+          </button>
+        )}
+        <div className="w-px bg-slate-200 self-stretch" />
         {WORKLOAD_OPTIONS.map(w => (
           <button
             key={w}
@@ -223,10 +316,19 @@ export function SystemArchitectureVisualizer() {
         {/* Layer 2 — hardware nodes */}
         {Object.entries(NODES).map(([key, n]) => {
           const Icon = n.Icon;
+          const isLive = workload === "Your Build" && liveData;
+          const borderClass = isLive
+            ? (NODE_BOTTLENECK_BORDER[liveData.result.bottleneckComponent]?.[key] ?? "border-slate-200")
+            : "border-slate-200";
+          const utilization =
+            isLive && key === "cpu" ? liveData.result.cpuUtilization
+            : isLive && key === "gpu" ? liveData.result.gpuUtilization
+            : null;
+
           return (
             <div
               key={key}
-              className="absolute flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 shadow-sm"
+              className={`absolute flex flex-col justify-center rounded-lg border bg-white px-3 shadow-sm transition-colors duration-300 ${borderClass}`}
               style={{
                 left:   `${(n.x / SVG_W) * 100}%`,
                 top:    `${(n.y / SVG_H) * 100}%`,
@@ -234,11 +336,27 @@ export function SystemArchitectureVisualizer() {
                 height: `${(n.h / SVG_H) * 100}%`,
               }}
             >
-              <Icon size={14} className={`shrink-0 ${n.iconColor}`} />
-              <div className="min-w-0">
-                <div className="text-[11px] font-semibold text-slate-800 leading-tight">{n.label}</div>
-                <div className="text-[9px] text-slate-400 leading-tight truncate">{n.sub}</div>
+              <div className="flex items-center gap-2">
+                <Icon size={14} className={`shrink-0 ${n.iconColor}`} />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-semibold text-slate-800 leading-tight">{n.label}</div>
+                  <div className="text-[9px] text-slate-400 leading-tight truncate">{n.sub}</div>
+                </div>
+                {utilization !== null && (
+                  <span className="text-[9px] font-mono font-semibold text-slate-500 shrink-0">{utilization}%</span>
+                )}
               </div>
+              {utilization !== null && (
+                <div className="mt-1 h-0.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${utilization}%`,
+                      backgroundColor: utilization > 90 ? "#ef4444" : utilization > 70 ? "#f59e0b" : "#10b981",
+                    }}
+                  />
+                </div>
+              )}
             </div>
           );
         })}
