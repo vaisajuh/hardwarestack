@@ -195,7 +195,7 @@ export function BottleneckCalculator({
             </button>
           )}
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <CardContent className="grid grid-cols-2 gap-4 lg:grid-cols-[2fr_2fr_2fr_1fr]">
           {/* CPU */}
           <div className="flex flex-col gap-1.5">
             <Label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">

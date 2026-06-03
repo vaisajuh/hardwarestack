@@ -186,6 +186,7 @@ function buildLiveConfig(liveData: LiveData): WorkloadDef {
   const amber  = "#f59e0b";
   const green  = "#10b981";
   const slate  = "#94a3b8";
+  const blue   = "#3b82f6";
 
   let streams: StreamDef[];
 
@@ -195,15 +196,15 @@ function buildLiveConfig(liveData: LiveData): WorkloadDef {
       { points: PATHS["cpu-ram"].points,  reversed: true,  count: 3, color: red,   duration: 0.7  },
       { points: PATHS["cpu-gpu"].points,  reversed: false, count: 2, color: amber, duration: 1.1  },
       { points: PATHS["cpu-gpu"].points,  reversed: true,  count: 1, color: slate, duration: 2.0  },
-      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 2, color: slate, duration: 1.3  },
-      { points: PATHS["ram-gpu"].points,  reversed: false, count: 1, color: slate, duration: 1.4  },
+      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 2, color: blue,  duration: 1.3  },
+      { points: PATHS["ram-gpu"].points,  reversed: false, count: 1, color: blue,  duration: 1.4  },
     ];
   } else if (bottleneckComponent === "GPU") {
     // CPU has headroom — light NVMe streaming, GPU is the constraint
     streams = [
-      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 1, color: slate, duration: 1.6  },
-      { points: PATHS["cpu-ram"].points,  reversed: false, count: 2, color: slate, duration: 1.2  },
-      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 1, color: slate, duration: 1.2  },
+      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 1, color: blue,  duration: 1.6  },
+      { points: PATHS["cpu-ram"].points,  reversed: false, count: 2, color: blue,  duration: 1.2  },
+      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 1, color: blue,  duration: 1.2  },
       { points: PATHS["cpu-gpu"].points,  reversed: false, count: 4, color: red,   duration: 0.6  },
       { points: PATHS["cpu-gpu"].points,  reversed: true,  count: 1, color: slate, duration: 1.5  },
       { points: PATHS["ram-gpu"].points,  reversed: false, count: 3, color: red,   duration: 0.65 },
@@ -211,7 +212,7 @@ function buildLiveConfig(liveData: LiveData): WorkloadDef {
   } else if (bottleneckComponent === "RAM") {
     // RAM is starving everything — NVMe feeds in but RAM can't keep up
     streams = [
-      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 2, color: slate, duration: 1.4  },
+      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 2, color: blue,  duration: 1.4  },
       { points: PATHS["cpu-ram"].points,  reversed: false, count: 3, color: amber, duration: 0.9  },
       { points: PATHS["cpu-ram"].points,  reversed: true,  count: 3, color: amber, duration: 0.9  },
       { points: PATHS["cpu-gpu"].points,  reversed: false, count: 1, color: slate, duration: 1.8  },
@@ -327,6 +328,7 @@ export function SystemArchitectureVisualizer({ liveData }: { liveData?: LiveData
             <LegendDot color="#ef4444" label="Bottleneck (saturated)" />
             <LegendDot color="#f59e0b" label="Throttled (starved)" />
             <LegendDot color="#10b981" label="Healthy / balanced" />
+            <LegendDot color="#3b82f6" label="Data" />
             <LegendDot color="#94a3b8" label="Control signals" />
           </>
         ) : workload === "DirectStorage" ? (
