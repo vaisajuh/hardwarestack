@@ -44,10 +44,10 @@ const SVG_W = 560;
 const SVG_H = 320;
 
 const NODES: Record<string, NodeDef> = {
-  cpu:  { x: 170, y: 134, w: 100, h: 52, label: "CPU",      sub: "Central Processor",  Icon: Cpu,         iconColor: "text-slate-600"  },
-  ram:  { x: 170, y:  29, w: 100, h: 52, label: "RAM",      sub: "System Memory",      Icon: MemoryStick, iconColor: "text-sky-600"    },
-  gpu:  { x: 370, y: 134, w: 100, h: 52, label: "GPU",      sub: "Graphics Processor", Icon: Monitor,     iconColor: "text-violet-600" },
-  nvme: { x: 170, y: 239, w: 100, h: 52, label: "NVMe SSD", sub: "Storage",            Icon: HardDrive,   iconColor: "text-amber-600"  },
+  cpu:  { x: 170, y: 134, w: 100, h: 52, label: "CPU",      sub: "Processor",  Icon: Cpu,         iconColor: "text-slate-600"  },
+  ram:  { x: 170, y:  29, w: 100, h: 52, label: "RAM",      sub: "Memory",     Icon: MemoryStick, iconColor: "text-sky-600"    },
+  gpu:  { x: 370, y: 134, w: 100, h: 52, label: "GPU",      sub: "Graphics",   Icon: Monitor,     iconColor: "text-violet-600" },
+  nvme: { x: 170, y: 239, w: 100, h: 52, label: "NVMe SSD", sub: "Storage",    Icon: HardDrive,   iconColor: "text-amber-600"  },
 };
 
 // Paths connect the edges of node rects:
