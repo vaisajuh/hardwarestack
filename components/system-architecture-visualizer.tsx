@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Cpu, Monitor, MemoryStick, HardDrive } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -229,13 +229,15 @@ const WORKLOAD_OPTIONS: Workload[] = ["Idle", "Standard Gaming", "DirectStorage"
 
 export function SystemArchitectureVisualizer({ liveData }: { liveData?: LiveData | null }) {
   const [workload, setWorkload] = useState<ActiveWorkload>("Standard Gaming");
+  const [prevHadLiveData, setPrevHadLiveData] = useState(!!liveData);
 
-  // Auto-switch to "Your Build" when the calculator produces a result
-  useEffect(() => {
-    if (liveData) setWorkload("Your Build");
+  // Adjust workload when liveData presence changes (React "setState during render" pattern)
+  const hadLiveData = !!liveData;
+  if (hadLiveData !== prevHadLiveData) {
+    setPrevHadLiveData(hadLiveData);
+    if (hadLiveData) setWorkload("Your Build");
     else if (workload === "Your Build") setWorkload("Standard Gaming");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [liveData]);
+  }
 
   const config = workload === "Your Build" && liveData
     ? buildLiveConfig(liveData)

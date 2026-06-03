@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { BottleneckCalculator } from "@/components/calculator/BottleneckCalculator";
 import { SystemArchitectureVisualizer } from "@/components/system-architecture-visualizer";
 import type { CpuOption, GpuOption, RamOption, BottleneckResult, Resolution } from "@/types/hardware";
@@ -24,6 +24,19 @@ interface Props {
 export function CalculatorSection({ cpus, gpus, rams, defaultCpuId, defaultGpuId, children }: Props) {
   const [liveData, setLiveData] = useState<LiveData | null>(null);
 
+  const handleResultChange = useCallback((
+    result: BottleneckResult | null,
+    cpu: CpuOption | null,
+    gpu: GpuOption | null,
+    resolution: Resolution
+  ) => {
+    if (result && cpu && gpu) {
+      setLiveData({ result, cpuName: cpu.modelName, gpuName: gpu.modelName, resolution });
+    } else {
+      setLiveData(null);
+    }
+  }, []); // setLiveData is stable
+
   return (
     <>
       <BottleneckCalculator
@@ -32,13 +45,7 @@ export function CalculatorSection({ cpus, gpus, rams, defaultCpuId, defaultGpuId
         rams={rams}
         defaultCpuId={defaultCpuId}
         defaultGpuId={defaultGpuId}
-        onResultChange={(result, cpu, gpu, resolution) => {
-          if (result && cpu && gpu) {
-            setLiveData({ result, cpuName: cpu.modelName, gpuName: gpu.modelName, resolution });
-          } else {
-            setLiveData(null);
-          }
-        }}
+        onResultChange={handleResultChange}
       />
 
       {children}

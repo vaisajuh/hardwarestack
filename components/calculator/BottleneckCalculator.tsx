@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { calculateBottleneck } from "@/lib/bottleneck";
 import type {
   CpuOption,
@@ -158,17 +158,9 @@ export function BottleneckCalculator({
       ? calculateBottleneck(selectedCpu, selectedGpu, resolution, selectedRam)
       : null;
 
-  const onResultChangeRef = useRef(onResultChange);
-  onResultChangeRef.current = onResultChange;
   useEffect(() => {
-    onResultChangeRef.current?.(
-      result,
-      selectedCpu ?? null,
-      selectedGpu ?? null,
-      resolution
-    );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCpuId, selectedGpuId, selectedRamId, resolution]);
+    onResultChange?.(result, selectedCpu ?? null, selectedGpu ?? null, resolution);
+  }, [selectedCpuId, selectedGpuId, selectedRamId, resolution, onResultChange]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cpuGroups = groupBySocket(cpus);
   const gpuGroups = groupByTier(gpus);
