@@ -238,6 +238,32 @@ function buildLiveConfig(liveData: LiveData): WorkloadDef {
   return { streams, description: descriptions[bottleneckComponent] ?? "" };
 }
 
+// ── Legend helpers ───────────────────────────────────────────────────────────
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="flex items-center gap-1">
+      <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+      {label}
+    </span>
+  );
+}
+
+function LegendLine({ dashed, label }: { dashed: boolean; label: string }) {
+  return (
+    <span className="flex items-center gap-1">
+      <svg width="20" height="8" className="shrink-0">
+        <line
+          x1="0" y1="4" x2="20" y2="4"
+          stroke="#94a3b8" strokeWidth="1.5"
+          strokeDasharray={dashed ? "4 2" : undefined}
+        />
+      </svg>
+      {label}
+    </span>
+  );
+}
+
 // ── SystemArchitectureVisualizer ─────────────────────────────────────────────
 
 const WORKLOAD_OPTIONS: Workload[] = ["Idle", "Standard Gaming", "DirectStorage", "AI Training"];
@@ -288,6 +314,36 @@ export function SystemArchitectureVisualizer({ liveData }: { liveData?: LiveData
             {w}
           </button>
         ))}
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] text-slate-500">
+        {workload === "Your Build" ? (
+          <>
+            <LegendDot color="#ef4444" label="Bottleneck (saturated)" />
+            <LegendDot color="#f59e0b" label="Throttled (starved)" />
+            <LegendDot color="#10b981" label="Healthy / balanced" />
+            <LegendDot color="#94a3b8" label="Control signals" />
+          </>
+        ) : workload === "DirectStorage" ? (
+          <>
+            <LegendDot color="#10b981" label="DirectStorage data" />
+            <LegendDot color="#94a3b8" label="Control signals" />
+          </>
+        ) : workload === "AI Training" ? (
+          <>
+            <LegendDot color="#8b5cf6" label="Training data" />
+            <LegendDot color="#a78bfa" label="DMA data" />
+          </>
+        ) : (
+          <>
+            <LegendDot color="#3b82f6" label="Data packets" />
+            <LegendDot color="#60a5fa" label="DMA texture data" />
+            <LegendDot color="#94a3b8" label="Control signals" />
+          </>
+        )}
+        <LegendLine dashed={false} label="Main bus" />
+        <LegendLine dashed label="DMA / bypass" />
       </div>
 
       {/* Diagram */}
