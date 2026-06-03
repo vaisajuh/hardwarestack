@@ -73,6 +73,10 @@ const PATHS: Record<string, PathDef> = {
     points: [[270, 265], [420, 265], [420, 186]],
     label: "DirectStorage", labelX: 428, labelY: 242, anchor: "start",
   },
+  "ram-gpu": {
+    points: [[270, 55], [420, 55], [420, 134]],
+    label: "PCIe DMA", labelX: 345, labelY: 47, anchor: "middle",
+  },
 };
 
 // ── Workload configurations ──────────────────────────────────────────────────
@@ -90,28 +94,32 @@ const WORKLOADS: Record<Workload, WorkloadDef> = {
       { points: PATHS["cpu-nvme"].points, reversed: true,  count: 3, color: "#3b82f6", duration: 1.1 },
       { points: PATHS["cpu-ram"].points,  reversed: false, count: 2, color: "#3b82f6", duration: 0.9 },
       { points: PATHS["cpu-ram"].points,  reversed: true,  count: 2, color: "#3b82f6", duration: 0.9 },
-      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 4, color: "#3b82f6", duration: 0.7 },
+      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 3, color: "#3b82f6", duration: 0.8 },
+      { points: PATHS["cpu-gpu"].points,  reversed: true,  count: 1, color: "#94a3b8", duration: 1.8 },
+      { points: PATHS["ram-gpu"].points,  reversed: false, count: 2, color: "#60a5fa", duration: 1.0 },
     ],
     description:
-      "Traditional pipeline: the CPU decompresses game assets from NVMe, stages them in RAM, processes game logic and draw calls, then streams the results to the GPU. The CPU is the central hub — every byte passes through it.",
+      "The CPU sends draw calls and command buffers to the GPU, while the GPU pulls bulk texture data directly from RAM via PCIe DMA. When each frame completes, the GPU signals the CPU via a completion interrupt over PCIe so the next frame can be dispatched.",
   },
   DirectStorage: {
     streams: [
       { points: PATHS["nvme-gpu"].points, reversed: false, count: 5, color: "#10b981", duration: 0.55 },
       { points: PATHS["cpu-gpu"].points,  reversed: false, count: 1, color: "#94a3b8", duration: 1.8  },
+      { points: PATHS["cpu-gpu"].points,  reversed: true,  count: 1, color: "#94a3b8", duration: 2.2  },
     ],
     description:
-      "Microsoft DirectStorage bypasses the CPU entirely. The GPU's onboard decompression engine pulls compressed textures directly from NVMe via PCIe, freeing the CPU and eliminating RAM as a staging area. Load times drop dramatically.",
+      "The GPU's onboard decompression engine pulls compressed textures directly from NVMe via PCIe, bypassing the CPU entirely. The CPU sends only lightweight draw calls and receives completion signals back — a fraction of the traditional pipeline traffic.",
   },
   "AI Training": {
     streams: [
       { points: PATHS["cpu-ram"].points, reversed: false, count: 4, color: "#8b5cf6", duration: 0.65 },
       { points: PATHS["cpu-ram"].points, reversed: true,  count: 4, color: "#8b5cf6", duration: 0.65 },
-      { points: PATHS["cpu-gpu"].points, reversed: false, count: 4, color: "#8b5cf6", duration: 0.65 },
+      { points: PATHS["cpu-gpu"].points, reversed: false, count: 3, color: "#8b5cf6", duration: 0.70 },
       { points: PATHS["cpu-gpu"].points, reversed: true,  count: 3, color: "#8b5cf6", duration: 0.70 },
+      { points: PATHS["ram-gpu"].points, reversed: false, count: 4, color: "#a78bfa", duration: 0.60 },
     ],
     description:
-      "During model training, the CPU continuously feeds batched training data from RAM to the GPU while gradients computed by the GPU flow back via PCIe for optimizer updates. The Memory Bus and PCIe ×16 link are under sustained, bidirectional load.",
+      "The CPU stages training batches in RAM. The GPU's DMA engine pulls batches directly from RAM over PCIe while the CPU sends optimizer commands via the ×16 link. Gradients flow back CPU-side for parameter updates — all three buses sustain continuous load.",
   },
 };
 
@@ -183,31 +191,38 @@ function buildLiveConfig(liveData: LiveData): WorkloadDef {
 
   if (bottleneckComponent === "CPU") {
     streams = [
-      { points: PATHS["cpu-ram"].points,  reversed: false, count: 4, color: red,   duration: 0.7 },
-      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 3, color: red,   duration: 0.7 },
-      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 2, color: amber, duration: 1.1 },
-      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 2, color: slate, duration: 1.3 },
+      { points: PATHS["cpu-ram"].points,  reversed: false, count: 4, color: red,   duration: 0.7  },
+      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 3, color: red,   duration: 0.7  },
+      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 2, color: amber, duration: 1.1  },
+      { points: PATHS["cpu-gpu"].points,  reversed: true,  count: 1, color: slate, duration: 2.0  },
+      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 2, color: slate, duration: 1.3  },
+      { points: PATHS["ram-gpu"].points,  reversed: false, count: 1, color: slate, duration: 1.4  },
     ];
   } else if (bottleneckComponent === "GPU") {
     streams = [
-      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 4, color: red,   duration: 0.6 },
-      { points: PATHS["cpu-gpu"].points,  reversed: true,  count: 1, color: slate, duration: 1.5 },
-      { points: PATHS["cpu-ram"].points,  reversed: false, count: 2, color: slate, duration: 1.2 },
-      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 1, color: slate, duration: 1.2 },
+      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 4, color: red,   duration: 0.6  },
+      { points: PATHS["cpu-gpu"].points,  reversed: true,  count: 1, color: slate, duration: 1.5  },
+      { points: PATHS["cpu-ram"].points,  reversed: false, count: 2, color: slate, duration: 1.2  },
+      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 1, color: slate, duration: 1.2  },
+      { points: PATHS["ram-gpu"].points,  reversed: false, count: 3, color: red,   duration: 0.65 },
     ];
   } else if (bottleneckComponent === "RAM") {
     streams = [
-      { points: PATHS["cpu-ram"].points,  reversed: false, count: 3, color: amber, duration: 0.9 },
-      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 3, color: amber, duration: 0.9 },
-      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 1, color: slate, duration: 1.8 },
+      { points: PATHS["cpu-ram"].points,  reversed: false, count: 3, color: amber, duration: 0.9  },
+      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 3, color: amber, duration: 0.9  },
+      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 1, color: slate, duration: 1.8  },
+      { points: PATHS["cpu-gpu"].points,  reversed: true,  count: 1, color: slate, duration: 2.2  },
+      { points: PATHS["ram-gpu"].points,  reversed: false, count: 1, color: amber, duration: 1.6  },
     ];
   } else {
     // Balanced
     streams = [
-      { points: PATHS["cpu-ram"].points,  reversed: false, count: 3, color: green, duration: 0.8 },
-      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 3, color: green, duration: 0.8 },
-      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 4, color: green, duration: 0.7 },
-      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 2, color: green, duration: 1.2 },
+      { points: PATHS["cpu-ram"].points,  reversed: false, count: 3, color: green, duration: 0.8  },
+      { points: PATHS["cpu-ram"].points,  reversed: true,  count: 3, color: green, duration: 0.8  },
+      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 3, color: green, duration: 0.75 },
+      { points: PATHS["cpu-gpu"].points,  reversed: true,  count: 1, color: slate, duration: 1.8  },
+      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 2, color: green, duration: 1.2  },
+      { points: PATHS["ram-gpu"].points,  reversed: false, count: 3, color: green, duration: 0.8  },
     ];
   }
 
@@ -287,18 +302,18 @@ export function SystemArchitectureVisualizer({ liveData }: { liveData?: LiveData
           preserveAspectRatio="xMidYMid meet"
         >
           {Object.entries(PATHS).map(([key, def]) => {
-            const isBypass = key === "nvme-gpu";
-            const bypassActive = isBypass && workload === "DirectStorage";
+            const isDma = key === "nvme-gpu" || key === "ram-gpu";
+            const isDirectStorageBypass = key === "nvme-gpu" && workload === "DirectStorage";
             return (
               <g key={key}>
                 <path
                   d={pathD(def.points)}
                   fill="none"
-                  stroke={bypassActive ? "#10b981" : "#cbd5e1"}
-                  strokeWidth={isBypass ? 1.5 : 2}
-                  strokeDasharray={isBypass ? "5 4" : undefined}
+                  stroke={isDirectStorageBypass ? "#10b981" : isDma ? "#94a3b8" : "#cbd5e1"}
+                  strokeWidth={isDma ? 1.5 : 2}
+                  strokeDasharray={isDma ? "6 3" : undefined}
                 />
-                {(!isBypass || bypassActive) && (
+                {(!isDma || isDirectStorageBypass || key === "ram-gpu") && (
                   <text
                     x={def.labelX}
                     y={def.labelY}
