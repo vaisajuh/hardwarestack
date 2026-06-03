@@ -199,15 +199,19 @@ function buildLiveConfig(liveData: LiveData): WorkloadDef {
       { points: PATHS["ram-gpu"].points,  reversed: false, count: 1, color: slate, duration: 1.4  },
     ];
   } else if (bottleneckComponent === "GPU") {
+    // CPU has headroom — light NVMe streaming, GPU is the constraint
     streams = [
-      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 4, color: red,   duration: 0.6  },
-      { points: PATHS["cpu-gpu"].points,  reversed: true,  count: 1, color: slate, duration: 1.5  },
+      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 1, color: slate, duration: 1.6  },
       { points: PATHS["cpu-ram"].points,  reversed: false, count: 2, color: slate, duration: 1.2  },
       { points: PATHS["cpu-ram"].points,  reversed: true,  count: 1, color: slate, duration: 1.2  },
+      { points: PATHS["cpu-gpu"].points,  reversed: false, count: 4, color: red,   duration: 0.6  },
+      { points: PATHS["cpu-gpu"].points,  reversed: true,  count: 1, color: slate, duration: 1.5  },
       { points: PATHS["ram-gpu"].points,  reversed: false, count: 3, color: red,   duration: 0.65 },
     ];
   } else if (bottleneckComponent === "RAM") {
+    // RAM is starving everything — NVMe feeds in but RAM can't keep up
     streams = [
+      { points: PATHS["cpu-nvme"].points, reversed: true,  count: 2, color: slate, duration: 1.4  },
       { points: PATHS["cpu-ram"].points,  reversed: false, count: 3, color: amber, duration: 0.9  },
       { points: PATHS["cpu-ram"].points,  reversed: true,  count: 3, color: amber, duration: 0.9  },
       { points: PATHS["cpu-gpu"].points,  reversed: false, count: 1, color: slate, duration: 1.8  },
