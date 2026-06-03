@@ -11,12 +11,7 @@ import type {
 } from "@/types/hardware";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { BottleneckGauge } from "./BottleneckGauge";
 import { UpgradeCard } from "@/components/monetization/UpgradeCard";
 
@@ -195,33 +190,20 @@ export function BottleneckCalculator({
             <Label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
               CPU
             </Label>
-            <Select
+            <SearchableSelect
               value={selectedCpuId}
-              onValueChange={(v) => { if (v !== null) handleCpuChange(v); }}
-            >
-              <SelectTrigger className="h-9 text-sm border-slate-200 w-full">
-                <span className={`flex-1 truncate text-left ${selectedCpu ? "" : "text-slate-400"}`}>
-                  {selectedCpu?.modelName ?? "Select CPU…"}
-                </span>
-              </SelectTrigger>
-              <SelectContent>
-                {cpuGroups.map(({ socket, items }) => (
-                  <div key={socket}>
-                    <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                      {SOCKET_LABELS[socket] ?? socket}
-                    </div>
-                    {items.map((cpu) => (
-                      <SelectItem key={cpu.id} value={cpu.id} label={cpu.modelName} className="text-sm">
-                        {cpu.modelName}
-                        <span className="ml-1.5 text-[10px] text-slate-400">
-                          {TIER_LABELS[cpu.tier]}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </div>
-                ))}
-              </SelectContent>
-            </Select>
+              onValueChange={(v) => handleCpuChange(v)}
+              placeholder="Select CPU…"
+              searchPlaceholder="Search CPUs…"
+              groups={cpuGroups.map(({ socket, items }) => ({
+                label: SOCKET_LABELS[socket] ?? socket,
+                options: items.map(cpu => ({
+                  value: cpu.id,
+                  label: cpu.modelName,
+                  meta: TIER_LABELS[cpu.tier],
+                })),
+              }))}
+            />
           </div>
 
           {/* GPU */}
@@ -229,32 +211,16 @@ export function BottleneckCalculator({
             <Label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
               GPU
             </Label>
-            <Select
+            <SearchableSelect
               value={selectedGpuId}
-              onValueChange={(v) => {
-                if (v !== null) setSelectedGpuId(v);
-              }}
-            >
-              <SelectTrigger className="h-9 text-sm border-slate-200 w-full">
-                <span className={`flex-1 truncate text-left ${selectedGpu ? "" : "text-slate-400"}`}>
-                  {selectedGpu?.modelName ?? "Select GPU…"}
-                </span>
-              </SelectTrigger>
-              <SelectContent>
-                {gpuGroups.map(({ tier, items }) => (
-                  <div key={tier}>
-                    <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                      {TIER_LABELS[tier]}
-                    </div>
-                    {items.map((gpu) => (
-                      <SelectItem key={gpu.id} value={gpu.id} label={gpu.modelName} className="text-sm">
-                        {gpu.modelName}
-                      </SelectItem>
-                    ))}
-                  </div>
-                ))}
-              </SelectContent>
-            </Select>
+              onValueChange={(v) => setSelectedGpuId(v)}
+              placeholder="Select GPU…"
+              searchPlaceholder="Search GPUs…"
+              groups={gpuGroups.map(({ tier, items }) => ({
+                label: TIER_LABELS[tier],
+                options: items.map(gpu => ({ value: gpu.id, label: gpu.modelName })),
+              }))}
+            />
           </div>
 
           {/* RAM */}
@@ -271,32 +237,16 @@ export function BottleneckCalculator({
                 </span>
               )}
             </Label>
-            <Select
+            <SearchableSelect
               value={selectedRamId}
-              onValueChange={(v) => {
-                if (v !== null) setSelectedRamId(v);
-              }}
-            >
-              <SelectTrigger className="h-9 text-sm border-slate-200 w-full">
-                <span className={`flex-1 truncate text-left ${selectedRam ? "" : "text-slate-400"}`}>
-                  {selectedRam?.modelName ?? "Select RAM…"}
-                </span>
-              </SelectTrigger>
-              <SelectContent>
-                {ramGroups.map(({ tier, items }) => (
-                  <div key={tier}>
-                    <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                      {TIER_LABELS[tier]}
-                    </div>
-                    {items.map((ram) => (
-                      <SelectItem key={ram.id} value={ram.id} label={ram.modelName} className="text-sm">
-                        {ram.modelName}
-                      </SelectItem>
-                    ))}
-                  </div>
-                ))}
-              </SelectContent>
-            </Select>
+              onValueChange={(v) => setSelectedRamId(v)}
+              placeholder="Select RAM…"
+              searchPlaceholder="Search RAM…"
+              groups={ramGroups.map(({ tier, items }) => ({
+                label: TIER_LABELS[tier],
+                options: items.map(ram => ({ value: ram.id, label: ram.modelName })),
+              }))}
+            />
           </div>
 
           {/* Resolution */}
