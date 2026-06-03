@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Cpu, Monitor, MemoryStick, HardDrive } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -277,6 +277,19 @@ export function SystemArchitectureVisualizer({ liveData }: { liveData?: LiveData
   const [workload, setWorkload] = useState<ActiveWorkload>("Standard Gaming");
   const [prevHadLiveData, setPrevHadLiveData] = useState(!!liveData);
 
+  // Scale diagram to fit container width on narrow screens
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      setScale(Math.min(1, entry.contentRect.width / SVG_W));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   // Adjust workload when liveData presence changes (React "setState during render" pattern)
   const hadLiveData = !!liveData;
   if (hadLiveData !== prevHadLiveData) {
@@ -352,16 +365,17 @@ export function SystemArchitectureVisualizer({ liveData }: { liveData?: LiveData
         <LegendLine dashed label="DMA / bypass" />
       </div>
 
-      {/* Diagram */}
+      {/* Diagram — scales down uniformly on narrow screens, no scrollbar */}
+      <div ref={wrapperRef} className="w-full rounded-lg border border-slate-200 overflow-hidden" style={{ height: SVG_H * scale }}>
       <div
-        className="relative w-full rounded-lg border border-slate-200 bg-slate-50/50 overflow-hidden"
-        style={{ paddingTop: `${(SVG_H / SVG_W) * 100}%` }}
+        className="relative bg-slate-50/50"
+        style={{ width: SVG_W, height: SVG_H, transformOrigin: "top left", transform: `scale(${scale})` }}
       >
         {/* Layer 1 — static paths (behind nodes) */}
         <svg
-          className="absolute inset-0 w-full h-full"
+          className="absolute inset-0"
+          width={SVG_W} height={SVG_H}
           viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-          preserveAspectRatio="xMidYMid meet"
         >
           {Object.entries(PATHS).map(([key, def]) => {
             const isDma = key === "nvme-gpu" || key === "ram-gpu";
@@ -408,12 +422,7 @@ export function SystemArchitectureVisualizer({ liveData }: { liveData?: LiveData
             <div
               key={key}
               className={`absolute flex flex-col justify-center rounded-lg border bg-white px-3 shadow-sm transition-colors duration-300 ${borderClass}`}
-              style={{
-                left:   `${(n.x / SVG_W) * 100}%`,
-                top:    `${(n.y / SVG_H) * 100}%`,
-                width:  `${(n.w / SVG_W) * 100}%`,
-                height: `${(n.h / SVG_H) * 100}%`,
-              }}
+              style={{ left: n.x, top: n.y, width: n.w, height: n.h }}
             >
               <div className="flex items-center gap-2">
                 <Icon size={14} className={`shrink-0 ${n.iconColor}`} />
@@ -442,9 +451,9 @@ export function SystemArchitectureVisualizer({ liveData }: { liveData?: LiveData
 
         {/* Layer 3 — animated packets (above nodes) */}
         <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
+          className="absolute inset-0 pointer-events-none"
+          width={SVG_W} height={SVG_H}
           viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-          preserveAspectRatio="xMidYMid meet"
         >
           <g key={workload}>
             {config.streams.flatMap((stream, si) => {
@@ -464,7 +473,7 @@ export function SystemArchitectureVisualizer({ liveData }: { liveData?: LiveData
           </g>
         </svg>
       </div>
-
+      </div>
       {/* Description */}
       <p className="text-sm text-slate-500 leading-relaxed">{config.description}</p>
     </div>
