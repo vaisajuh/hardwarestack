@@ -94,14 +94,17 @@ export function SearchableSelect({
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
-  const dropdown = open && rect ? (
+  const dropdown = open && rect ? (() => {
+    const dropWidth = Math.max(rect.width, 280);
+    const leftPos = Math.min(rect.left, window.innerWidth - dropWidth - 8);
+    return (
     <div
       id="searchable-select-portal"
       style={{
         position: "fixed",
         top: rect.bottom + 4,
-        left: rect.left,
-        width: Math.max(rect.width, 240),
+        left: Math.max(8, leftPos),
+        width: dropWidth,
         zIndex: 9999,
       }}
       className="rounded-md border border-slate-200 bg-white shadow-lg"
@@ -140,13 +143,13 @@ export function SearchableSelect({
                   type="button"
                   onPointerDown={e => e.preventDefault()} // prevent blur before click
                   onClick={() => handleSelect(opt.value)}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-slate-50"
+                  className="flex w-full items-start gap-2 px-3 py-1.5 text-left text-sm hover:bg-slate-50"
                 >
                   <Check
                     size={12}
-                    className={`shrink-0 ${value === opt.value ? "text-slate-700" : "opacity-0"}`}
+                    className={`shrink-0 mt-0.5 ${value === opt.value ? "text-slate-700" : "opacity-0"}`}
                   />
-                  <span className="flex-1 truncate text-slate-800">{opt.label}</span>
+                  <span className="flex-1 text-slate-800 break-words min-w-0">{opt.label}</span>
                   {opt.meta && <span className="text-[10px] text-slate-400">{opt.meta}</span>}
                 </button>
               ))}
@@ -155,7 +158,8 @@ export function SearchableSelect({
         )}
       </div>
     </div>
-  ) : null;
+    );
+  })() : null;
 
   return (
     <>
