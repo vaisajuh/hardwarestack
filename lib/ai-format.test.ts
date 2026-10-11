@@ -1,17 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { dedupeGpusByName, formatGb, formatSpeed } from "./ai-format";
+import { formatGb, formatSpeed } from "./ai-format";
 import { defaultQuant, getLlmModel } from "./llm-models";
-
-describe("dedupeGpusByName", () => {
-  it("keeps the first of names that differ only in casing", () => {
-    const gpus = [
-      { id: "a", modelName: "NVIDIA GeForce RTX 4070 SUPER" },
-      { id: "b", modelName: "NVIDIA GeForce RTX 4070 Super" },
-      { id: "c", modelName: "NVIDIA GeForce RTX 4070" },
-    ];
-    expect(dedupeGpusByName(gpus).map((g) => g.id)).toEqual(["a", "c"]);
-  });
-});
 
 describe("formatting", () => {
   it("shows one decimal below 10 and whole numbers above", () => {

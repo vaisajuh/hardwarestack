@@ -10,7 +10,7 @@ import { checkFit, estimateMemory, minVramGb, recommendQuant } from "@/lib/ai-fi
 import type { FitResult, SystemRamSpec } from "@/lib/ai-fit";
 import { DEFAULT_CONTEXT_TOKENS, LLM_MODELS, QUANT_LEVELS, defaultQuant, getLlmModel } from "@/lib/llm-models";
 import { buildGoogleShoppingUrl, buildPcPartPickerUrl } from "@/lib/shopping-links";
-import { dedupeGpusByName, formatGb, formatSpeed } from "@/lib/ai-format";
+import { formatGb, formatSpeed } from "@/lib/ai-format";
 import { StatusBadge } from "@/components/local-ai/StatusBadge";
 import type { GpuOption } from "@/types/hardware";
 import type { QuantId } from "@/types/local-ai";
@@ -86,13 +86,8 @@ interface LocalAiCalculatorProps {
 }
 
 export function LocalAiCalculator({ gpus, defaultGpuId, defaultModelSlug }: LocalAiCalculatorProps) {
-  const uniqueGpus = dedupeGpusByName(gpus);
   const initialModel = defaultModelSlug ? getLlmModel(defaultModelSlug) : undefined;
-  // Match by name so links to a duplicate row still preselect the card that survived dedupe.
-  const linkedGpu = gpus.find((g) => g.id === defaultGpuId);
-  const initialGpu = linkedGpu
-    ? uniqueGpus.find((g) => g.modelName.toLowerCase() === linkedGpu.modelName.toLowerCase())
-    : undefined;
+  const initialGpu = gpus.find((g) => g.id === defaultGpuId);
 
   const [mode, setMode] = useState<Mode>(initialModel && !initialGpu ? "model" : "gpu");
   const [gpuId, setGpuId] = useState(initialGpu?.id ?? "");
@@ -103,7 +98,7 @@ export function LocalAiCalculator({ gpus, defaultGpuId, defaultModelSlug }: Loca
   const [quant, setQuant] = useState<QuantId>(initialModel ? defaultQuant(initialModel) : "Q4_K_M");
 
   const ram: SystemRamSpec = { capacityGb: ramGb, speedMhz: RAM_SPEED_MTS[ramType], channels: 2 };
-  const selectedGpu = uniqueGpus.find((g) => g.id === gpuId) ?? null;
+  const selectedGpu = gpus.find((g) => g.id === gpuId) ?? null;
   const selectedModel = modelSlug ? getLlmModel(modelSlug) ?? null : null;
 
   function handleModelChange(slug: string) {
@@ -112,10 +107,10 @@ export function LocalAiCalculator({ gpus, defaultGpuId, defaultModelSlug }: Loca
     if (m && !m.quants.includes(quant)) setQuant(m.quants[0]);
   }
 
-  const gpuGroups = TIER_ORDER.filter((t) => uniqueGpus.some((g) => g.tier === t))
+  const gpuGroups = TIER_ORDER.filter((t) => gpus.some((g) => g.tier === t))
     .map((tier) => ({
       label: TIER_LABELS[tier],
-      options: uniqueGpus
+      options: gpus
         .filter((g) => g.tier === tier)
         .map((g) => ({ value: g.id, label: g.modelName, meta: `${g.vramGb} GB` })),
     }));
@@ -229,7 +224,7 @@ export function LocalAiCalculator({ gpus, defaultGpuId, defaultModelSlug }: Loca
             modelSlug={selectedModel.slug}
             quant={quant}
             contextTokens={contextTokens}
-            gpus={uniqueGpus}
+            gpus={gpus}
             ram={ram}
           />
         ) : (
