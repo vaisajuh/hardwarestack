@@ -63,8 +63,13 @@ async function runCpus() {
   console.log("Upserting to database…");
   let upserted = 0;
   for (const cpu of normalized) {
+    // Reuse an existing row's spelling so casing variants never become a second row.
+    const existing = await prisma.cpu.findFirst({
+      where: { modelName: { equals: cpu.modelName, mode: "insensitive" } },
+      select: { modelName: true },
+    });
     await prisma.cpu.upsert({
-      where: { modelName: cpu.modelName },
+      where: { modelName: existing?.modelName ?? cpu.modelName },
       update: {
         tier: cpu.tier,
         singleCoreScore: cpu.singleCoreScore,
@@ -105,8 +110,13 @@ async function runGpus() {
   console.log("Upserting to database…");
   let upserted = 0;
   for (const gpu of normalized) {
+    // Reuse an existing row's spelling so "Super"/"SUPER" variants never become a second row.
+    const existing = await prisma.gpu.findFirst({
+      where: { modelName: { equals: gpu.modelName, mode: "insensitive" } },
+      select: { modelName: true },
+    });
     await prisma.gpu.upsert({
-      where: { modelName: gpu.modelName },
+      where: { modelName: existing?.modelName ?? gpu.modelName },
       update: { tier: gpu.tier, rasterScore: gpu.rasterScore, memoryBandwidthGbs: gpu.memoryBandwidthGbs },
       create: gpu,
     });

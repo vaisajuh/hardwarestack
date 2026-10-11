@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { checkFit, estimateMemory, minVramGb } from "@/lib/ai-fit";
-import { dedupeGpusByName, formatGb, formatSpeed } from "@/lib/ai-format";
+import { formatGb, formatSpeed } from "@/lib/ai-format";
 import { getGpus } from "@/lib/hardware-queries";
 import { DEFAULT_CONTEXT_TOKENS, LLM_MODELS, QUANT_LEVELS, defaultQuant, getLlmModel } from "@/lib/llm-models";
 import { buildGoogleShoppingUrl } from "@/lib/shopping-links";
@@ -69,7 +69,7 @@ export default async function LocalAiModelPage({ params }: Props) {
   const memory = estimateMemory(model, quant, DEFAULT_CONTEXT_TOKENS);
   const neededVram = minVramGb(model, quant, DEFAULT_CONTEXT_TOKENS);
 
-  const gpus = dedupeGpusByName(await getGpus());
+  const gpus = await getGpus();
   const fitting = gpus
     .map((gpu) => ({ gpu, fit: checkFit({ model, quant, contextTokens: DEFAULT_CONTEXT_TOKENS, gpu, ram: null }) }))
     .filter((r) => r.fit.status === "gpu")

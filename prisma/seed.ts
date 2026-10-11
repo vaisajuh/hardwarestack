@@ -40,13 +40,13 @@ const gpus = [
   { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4090",    vramGb: 24, memoryBandwidthGbs: 1008, memoryType: "GDDR6X", architecture: "Ada Lovelace",  tier: "ENTHUSIAST" as const, rasterScore: 18000 },
   { vendor: "AMD" as const,    modelName: "AMD Radeon RX 7900 XTX",     vramGb: 24, memoryBandwidthGbs: 960, memoryType: "GDDR6",  architecture: "RDNA 3",        tier: "ENTHUSIAST" as const, rasterScore: 16000 },
   // ULTRA
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4080 Super", vramGb: 16, memoryBandwidthGbs: 736, memoryType: "GDDR6X", architecture: "Ada Lovelace", tier: "ULTRA" as const, rasterScore: 15000 },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4080 SUPER", vramGb: 16, memoryBandwidthGbs: 736, memoryType: "GDDR6X", architecture: "Ada Lovelace", tier: "ULTRA" as const, rasterScore: 15000 },
   { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4080",    vramGb: 16, memoryBandwidthGbs: 717, memoryType: "GDDR6X", architecture: "Ada Lovelace",  tier: "ULTRA" as const,       rasterScore: 14000 },
   { vendor: "AMD" as const,    modelName: "AMD Radeon RX 7900 XT",      vramGb: 20, memoryBandwidthGbs: 800, memoryType: "GDDR6",  architecture: "RDNA 3",        tier: "ULTRA" as const,       rasterScore: 13500 },
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4070 Ti Super", vramGb: 16, memoryBandwidthGbs: 672, memoryType: "GDDR6X", architecture: "Ada Lovelace", tier: "ULTRA" as const, rasterScore: 13000 },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4070 Ti SUPER", vramGb: 16, memoryBandwidthGbs: 672, memoryType: "GDDR6X", architecture: "Ada Lovelace", tier: "ULTRA" as const, rasterScore: 13000 },
   { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3090",    vramGb: 24, memoryBandwidthGbs: 936, memoryType: "GDDR6X", architecture: "Ampere",        tier: "ULTRA" as const,       rasterScore: 11000 },
   // HIGH
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4070 Super", vramGb: 12, memoryBandwidthGbs: 504, memoryType: "GDDR6X", architecture: "Ada Lovelace", tier: "HIGH" as const, rasterScore: 11000 },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4070 SUPER", vramGb: 12, memoryBandwidthGbs: 504, memoryType: "GDDR6X", architecture: "Ada Lovelace", tier: "HIGH" as const, rasterScore: 11000 },
   { vendor: "AMD" as const,    modelName: "AMD Radeon RX 7800 XT",      vramGb: 16, memoryBandwidthGbs: 624, memoryType: "GDDR6",  architecture: "RDNA 3",        tier: "HIGH" as const,        rasterScore: 9000  },
   { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4070",    vramGb: 12, memoryBandwidthGbs: 504, memoryType: "GDDR6X", architecture: "Ada Lovelace",  tier: "HIGH" as const,        rasterScore: 9500  },
   { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3080 Ti", vramGb: 12, memoryBandwidthGbs: 912, memoryType: "GDDR6X", architecture: "Ampere",        tier: "HIGH" as const,        rasterScore: 10500 },

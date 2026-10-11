@@ -8,13 +8,3 @@ export function formatSpeed(tokensPerSecond: number | null): string {
   return tokensPerSecond < 10 ? `~${tokensPerSecond.toFixed(1)} tok/s` : `~${Math.round(tokensPerSecond)} tok/s`;
 }
 
-// The scraper occasionally stores the same card twice with different casing ("Super"/"SUPER").
-export function dedupeGpusByName<T extends { modelName: string }>(gpus: T[]): T[] {
-  const seen = new Set<string>();
-  return gpus.filter((g) => {
-    const key = g.modelName.toLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
