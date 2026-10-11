@@ -131,3 +131,26 @@ export function checkFit({ model, quant, contextTokens, gpu, ram }: FitInput): F
 export function minVramGb(model: LlmModel, quant: QuantId, contextTokens: number): number {
   return Math.ceil(estimateMemory(model, quant, contextTokens).totalGib / USABLE_VRAM_FRACTION);
 }
+
+export interface QuantRecommendation {
+  quant: QuantId;
+  fit: FitResult;
+}
+
+// Highest-quality quantisation that runs entirely on the GPU; failing that, the
+// smallest one, since it offloads the least to system RAM.
+export function recommendQuant(
+  model: LlmModel,
+  contextTokens: number,
+  gpu: GpuSpec,
+  ram: SystemRamSpec | null
+): QuantRecommendation {
+  const byQuality = [...model.quants].sort(
+    (a, b) => bitsPerWeight(model, b) - bitsPerWeight(model, a)
+  );
+  const options = byQuality.map((quant) => ({
+    quant,
+    fit: checkFit({ model, quant, contextTokens, gpu, ram }),
+  }));
+  return options.find((o) => o.fit.status === "gpu") ?? options[options.length - 1];
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { bitsPerWeight, checkFit, estimateMemory, minVramGb } from "./ai-fit";
+import { bitsPerWeight, checkFit, estimateMemory, minVramGb, recommendQuant } from "./ai-fit";
 import { LLM_MODELS, getLlmModel } from "./llm-models";
 import type { GpuSpec, SystemRamSpec } from "./ai-fit";
 import type { LlmModel } from "@/types/local-ai";
@@ -107,6 +107,20 @@ describe("checkFit", () => {
     });
     expect(fit.status).toBe("gpu");
     expect(fit.tokensPerSecond).toBeNull();
+  });
+});
+
+describe("recommendQuant", () => {
+  it("picks the highest quality that fits entirely on the GPU", () => {
+    // At 8K context, 8B needs ~7.3 GiB at Q5 and ~9.9 GiB at Q8 (8 GB card: 7.6 usable); FP16 needs ~17 GiB.
+    expect(recommendQuant(model("llama-3-1-8b"), 8192, rtx4060Ti, null).quant).toBe("Q5_K_M");
+    expect(recommendQuant(model("llama-3-1-8b"), 8192, rtx4090, null).quant).toBe("F16");
+  });
+
+  it("falls back to the smallest quantisation when nothing fits on the GPU", () => {
+    const rec = recommendQuant(model("llama-3-3-70b"), 8192, rtx4090, ddr5x64);
+    expect(rec.quant).toBe("Q4_K_M");
+    expect(rec.fit.status).toBe("partial");
   });
 });
 

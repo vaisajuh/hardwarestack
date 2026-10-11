@@ -66,6 +66,12 @@ export default function RootLayout({
               >
                 GPUs
               </Link>
+              <Link
+                href="/local-ai"
+                className="rounded px-2.5 py-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
+              >
+                Local AI
+              </Link>
             </nav>
           </div>
         </header>
