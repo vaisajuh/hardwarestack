@@ -90,6 +90,9 @@ export default function RootLayout({
               HardwareStack accepts no responsibility for damaged, incompatible,
               or incorrectly installed hardware.
             </p>
+            {process.env.NEXT_PUBLIC_AMAZON_AFFILIATE_TAG && (
+              <p>As an Amazon Associate I earn from qualifying purchases.</p>
+            )}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <span>
                 Contact:{" "}

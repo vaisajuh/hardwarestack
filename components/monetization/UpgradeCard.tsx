@@ -5,7 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { calculateBottleneck } from "@/lib/bottleneck";
-import { buildGoogleShoppingUrl, buildPcPartPickerUrl } from "@/lib/shopping-links";
+import { AFFILIATE_REL, buildAmazonSearchUrl, buildGoogleShoppingUrl } from "@/lib/shopping-links";
 import type {
   BottleneckComponent,
   CpuOption,
@@ -121,6 +121,8 @@ export function UpgradeCard({
 
   if (!upgrade) return null;
 
+  const amazonUrl = buildAmazonSearchUrl(upgrade.modelName);
+
   return (
     <Card className="border-slate-200 shadow-sm">
       <CardHeader className="pb-3">
@@ -142,31 +144,22 @@ export function UpgradeCard({
           </p>
           <div className="flex items-center gap-2 shrink-0">
             <a
-              href={buildPcPartPickerUrl(upgrade.modelName)}
+              href={amazonUrl ?? buildGoogleShoppingUrl(upgrade.modelName)}
               target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                buttonVariants({ variant: "outline", size: "sm" }),
-                "no-underline border-slate-200 text-slate-700 hover:bg-slate-100"
-              )}
-            >
-              PCPartPicker
-              <ExternalLink className="ml-1.5 h-3 w-3" />
-            </a>
-            <a
-              href={buildGoogleShoppingUrl(upgrade.modelName)}
-              target="_blank"
-              rel="noopener noreferrer"
+              rel={amazonUrl ? AFFILIATE_REL : "noopener noreferrer"}
               className={cn(
                 buttonVariants({ variant: "default", size: "sm" }),
                 "no-underline bg-slate-900 hover:bg-slate-700"
               )}
             >
-              Google Shopping
+              {amazonUrl ? "Check price on Amazon" : "Google Shopping"}
               <ExternalLink className="ml-1.5 h-3 w-3" />
             </a>
           </div>
         </div>
+        {amazonUrl && (
+          <p className="mt-2 text-[10px] uppercase tracking-wide text-slate-400">Affiliate Partner</p>
+        )}
       </CardContent>
     </Card>
   );

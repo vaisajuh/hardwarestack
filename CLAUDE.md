@@ -46,7 +46,8 @@ npx prisma db push           # Push schema without migration history (dev only)
 
 ### Monetization
 - Affiliate tag: `NEXT_PUBLIC_AMAZON_AFFILIATE_TAG` env var.
-- When a bottleneck is detected, render an "Upgrade Recommendation" card containing a "Check Price" link built from the `RetailLink.asin`. Include a visible "Affiliate Partner" compliance label.
+- Amazon links are tagged amazon.de **search** links built by `buildAmazonSearchUrl` in `lib/shopping-links.ts` (no prices: Amazon only allows prices from its official API). With no tag set, links fall back to Google Shopping.
+- Affiliate links use `rel="sponsored nofollow"`, buttons carry a visible "Affiliate Partner" label, and the footer shows "As an Amazon Associate I earn from qualifying purchases." Keep all three.
 
 ## Environment variables
 Copy `.env.example` to `.env.local` for local dev:

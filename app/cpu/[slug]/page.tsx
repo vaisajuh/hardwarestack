@@ -7,6 +7,7 @@ import { toSlug } from "@/lib/slug";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { AFFILIATE_REL, buildAmazonSearchUrl } from "@/lib/shopping-links";
 import type { CpuOption, GpuOption } from "@/types/hardware";
 import { CpuPairingTable } from "@/components/detail/CpuPairingTable";
 
@@ -82,6 +83,7 @@ export default async function CpuDetailPage({ params }: Props) {
 
   const cpu = allCpus.find((c) => toSlug(c.modelName) === slug);
   if (!cpu) notFound();
+  const amazonUrl = buildAmazonSearchUrl(cpu.modelName);
 
   // One representative GPU per tier for pairing table
   const pairingGpus = TIER_ORDER.flatMap((tier) => {
@@ -203,6 +205,17 @@ export default async function CpuDetailPage({ params }: Props) {
           {/* Buy */}
           <div className="rounded-lg border border-slate-200 bg-white p-5 flex flex-col gap-3">
             <p className="text-sm font-semibold text-slate-800">Find Best Price</p>
+            {amazonUrl && (
+              <a
+                href={amazonUrl}
+                target="_blank"
+                rel={AFFILIATE_REL}
+                className={cn(buttonVariants({ variant: "default", size: "sm" }), "no-underline bg-slate-900 hover:bg-slate-700")}
+              >
+                Check price on Amazon
+                <ExternalLink className="ml-1.5 h-3 w-3" />
+              </a>
+            )}
             <a
               href={pcPartPickerUrl(cpu.modelName)}
               target="_blank"
@@ -216,11 +229,15 @@ export default async function CpuDetailPage({ params }: Props) {
               href={googleShoppingUrl(cpu.modelName)}
               target="_blank"
               rel="noopener noreferrer"
-              className={cn(buttonVariants({ variant: "default", size: "sm" }), "no-underline bg-slate-900 hover:bg-slate-700")}
+              className={cn(
+                buttonVariants({ variant: amazonUrl ? "outline" : "default", size: "sm" }),
+                amazonUrl ? "no-underline" : "no-underline bg-slate-900 hover:bg-slate-700"
+              )}
             >
               Google Shopping
               <ExternalLink className="ml-1.5 h-3 w-3" />
             </a>
+            {amazonUrl && <p className="text-[10px] uppercase tracking-wide text-slate-400">Affiliate Partner</p>}
           </div>
 
           {/* All CPUs link */}
