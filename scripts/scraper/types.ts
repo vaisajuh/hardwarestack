@@ -30,6 +30,7 @@ export interface NormalizedGpu {
   modelName: string;
   vendor: "AMD" | "NVIDIA";
   vramGb: number;
+  memoryBandwidthGbs: number; // reference-spec memory bandwidth, GB/s
   memoryType: string;
   architecture: string;
   tier: Tier;

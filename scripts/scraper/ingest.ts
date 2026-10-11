@@ -107,7 +107,7 @@ async function runGpus() {
   for (const gpu of normalized) {
     await prisma.gpu.upsert({
       where: { modelName: gpu.modelName },
-      update: { tier: gpu.tier, rasterScore: gpu.rasterScore },
+      update: { tier: gpu.tier, rasterScore: gpu.rasterScore, memoryBandwidthGbs: gpu.memoryBandwidthGbs },
       create: gpu,
     });
     upserted++;

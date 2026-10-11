@@ -64,7 +64,8 @@ RULES:
   - ENTHUSIAST:  Flagship 4K (RTX 4090, RX 7900 XTX tier)
 - Score normalisation:
   - rasterScore = round(passmarkScore × 0.51)   [range ~3000–18000]
-- Fill in best-effort specs (vramGb, memoryType, architecture) from your knowledge
+- Fill in best-effort specs (vramGb, memoryBandwidthGbs, memoryType, architecture) from your knowledge
+- memoryBandwidthGbs is the reference-spec memory bandwidth in GB/s (RTX 4090: 1008, RTX 4060: 272)
 - Return null for entries that should be skipped
 
 OUTPUT: JSON array, one element per input item, either a NormalizedGpu object or null.
@@ -74,6 +75,7 @@ NormalizedGpu schema:
   "modelName": "NVIDIA GeForce RTX 4090",
   "vendor": "NVIDIA",
   "vramGb": 24,
+  "memoryBandwidthGbs": 1008,
   "memoryType": "GDDR6X",
   "architecture": "Ada Lovelace",
   "tier": "ENTHUSIAST",
