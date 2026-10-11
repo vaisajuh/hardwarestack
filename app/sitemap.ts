@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { toSlug } from "@/lib/slug";
+import { LLM_MODELS } from "@/lib/llm-models";
 
 const BASE_URL = "https://www.hardwarestack.dev";
 
@@ -24,6 +25,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
+  const localAiUrls: MetadataRoute.Sitemap = LLM_MODELS.map((model) => ({
+    url: `${BASE_URL}/local-ai/${model.slug}`,
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
+
   return [
     { url: BASE_URL, changeFrequency: "weekly", priority: 1.0 },
     { url: `${BASE_URL}/cpus`, changeFrequency: "weekly", priority: 0.8 },
@@ -31,5 +38,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/local-ai`, changeFrequency: "weekly", priority: 0.9 },
     ...cpuUrls,
     ...gpuUrls,
+    ...localAiUrls,
   ];
 }
