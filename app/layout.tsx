@@ -88,15 +88,25 @@ export default function RootLayout({
               <span>
                 Contact:{" "}
                 <a
-                  href="mailto:summit.dragon4613@eagereverest.com"
+                  href="mailto:juha.vaisanen@gmail.com"
                   className="underline hover:text-slate-900"
                 >
-                  summit.dragon4613@eagereverest.com
+                  juha.vaisanen@gmail.com
                 </a>
               </span>
-              <Link href="/terms" className="underline hover:text-slate-900">
-                Terms of Use
-              </Link>
+              <div className="flex items-center gap-4">
+                <a
+                  href="https://buymeacoffee.com/vaisajuh"
+                  target="_blank"
+                  rel="noopener"
+                  className="underline hover:text-slate-900"
+                >
+                  ☕ Buy me a coffee
+                </a>
+                <Link href="/terms" className="underline hover:text-slate-900">
+                  Terms of Use
+                </Link>
+              </div>
             </div>
           </div>
         </footer>

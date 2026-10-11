@@ -94,10 +94,10 @@ export default function TermsPage() {
           <p>
             Questions about these terms can be sent to{" "}
             <a
-              href="mailto:summit.dragon4613@eagereverest.com"
+              href="mailto:juha.vaisanen@gmail.com"
               className="underline hover:text-slate-900"
             >
-              summit.dragon4613@eagereverest.com
+              juha.vaisanen@gmail.com
             </a>
             .
           </p>
