@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MethodologySection } from "@/components/calculator/MethodologySection";
 import { CalculatorSection } from "@/components/CalculatorSection";
+import { ToolTabs } from "@/components/ToolTabs";
 import { getCpus, getGpus, getRams } from "@/lib/hardware-queries";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:py-12">
+      <p className="mb-3 text-sm text-slate-500">
+        HardwareStack checks how your hardware performs, for gaming and for running AI models locally.
+      </p>
+      <ToolTabs active="gaming" />
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
           PC Bottleneck Calculator

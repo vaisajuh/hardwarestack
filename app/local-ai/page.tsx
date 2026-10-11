@@ -3,6 +3,7 @@ import { LocalAiCalculator } from "@/components/local-ai/LocalAiCalculator";
 import type { LocalAiGpu } from "@/components/local-ai/LocalAiCalculator";
 import { LocalAiMethodology } from "@/components/local-ai/LocalAiMethodology";
 import { getGpus } from "@/lib/hardware-queries";
+import { ToolTabs } from "@/components/ToolTabs";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ export default async function LocalAiPage({ searchParams }: LocalAiPageProps) {
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:py-12">
+      <ToolTabs active="ai" />
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
           Can I Run This AI Model Locally?

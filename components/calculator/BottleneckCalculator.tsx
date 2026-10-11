@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { BottleneckGauge } from "./BottleneckGauge";
 import { UpgradeCard } from "@/components/monetization/UpgradeCard";
+import { LocalAiTeaser } from "@/components/local-ai/LocalAiTeaser";
 
 interface Props {
   cpus: CpuOption[];
@@ -347,6 +348,8 @@ export function BottleneckCalculator({
                 resolution={resolution}
               />
             )}
+
+            <LocalAiTeaser gpu={selectedGpu} gpuLabel={shortName(selectedGpu.modelName)} />
           </CardContent>
         </Card>
       ) : (
