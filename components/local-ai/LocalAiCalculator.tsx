@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { checkFit, estimateMemory, minVramGb, recommendQuant } from "@/lib/ai-fit";
-import type { FitResult, FitStatus, SystemRamSpec } from "@/lib/ai-fit";
-import { LLM_MODELS, QUANT_LEVELS, getLlmModel } from "@/lib/llm-models";
+import type { FitResult, SystemRamSpec } from "@/lib/ai-fit";
+import { DEFAULT_CONTEXT_TOKENS, LLM_MODELS, QUANT_LEVELS, defaultQuant, getLlmModel } from "@/lib/llm-models";
 import { buildGoogleShoppingUrl, buildPcPartPickerUrl } from "@/lib/shopping-links";
+import { dedupeGpusByName, formatGb, formatSpeed } from "@/lib/ai-format";
+import { StatusBadge } from "@/components/local-ai/StatusBadge";
 import type { GpuOption } from "@/types/hardware";
 import type { QuantId } from "@/types/local-ai";
 
@@ -37,42 +40,7 @@ const CONTEXT_OPTIONS = [
   { tokens: 131_072, label: "128K" },
 ] as const;
 
-const STATUS_STYLES: Record<FitStatus, { label: string; className: string }> = {
-  gpu: { label: "On GPU", className: "bg-emerald-50 text-emerald-700" },
-  partial: { label: "GPU + RAM", className: "bg-amber-50 text-amber-700" },
-  none: { label: "Won't run", className: "bg-slate-100 text-slate-500" },
-};
-
 const labelClass = "text-[10px] font-semibold text-slate-500 uppercase tracking-wider";
-
-function formatGb(gib: number): string {
-  return gib < 10 ? gib.toFixed(1) : Math.round(gib).toString();
-}
-
-function formatSpeed(tokensPerSecond: number | null): string {
-  if (tokensPerSecond === null) return "—";
-  return tokensPerSecond < 10 ? `~${tokensPerSecond.toFixed(1)} tok/s` : `~${Math.round(tokensPerSecond)} tok/s`;
-}
-
-// The scraper occasionally stores the same card twice with different casing ("Super"/"SUPER").
-function dedupeByName(gpus: LocalAiGpu[]): LocalAiGpu[] {
-  const seen = new Set<string>();
-  return gpus.filter((g) => {
-    const key = g.modelName.toLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function StatusBadge({ status }: { status: FitStatus }) {
-  const style = STATUS_STYLES[status];
-  return (
-    <span className={`inline-flex rounded px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap ${style.className}`}>
-      {style.label}
-    </span>
-  );
-}
 
 function MemoryBar({ fit }: { fit: FitResult }) {
   const pct = Math.min(100, (fit.memory.totalGib / fit.usableVramGib) * 100);
@@ -111,16 +79,28 @@ function Segmented<T extends string | number>({
   );
 }
 
-export function LocalAiCalculator({ gpus }: { gpus: LocalAiGpu[] }) {
-  const uniqueGpus = dedupeByName(gpus);
+interface LocalAiCalculatorProps {
+  gpus: LocalAiGpu[];
+  defaultGpuId?: string;
+  defaultModelSlug?: string;
+}
 
-  const [mode, setMode] = useState<Mode>("gpu");
-  const [gpuId, setGpuId] = useState("");
+export function LocalAiCalculator({ gpus, defaultGpuId, defaultModelSlug }: LocalAiCalculatorProps) {
+  const uniqueGpus = dedupeGpusByName(gpus);
+  const initialModel = defaultModelSlug ? getLlmModel(defaultModelSlug) : undefined;
+  // Match by name so links to a duplicate row still preselect the card that survived dedupe.
+  const linkedGpu = gpus.find((g) => g.id === defaultGpuId);
+  const initialGpu = linkedGpu
+    ? uniqueGpus.find((g) => g.modelName.toLowerCase() === linkedGpu.modelName.toLowerCase())
+    : undefined;
+
+  const [mode, setMode] = useState<Mode>(initialModel && !initialGpu ? "model" : "gpu");
+  const [gpuId, setGpuId] = useState(initialGpu?.id ?? "");
   const [ramGb, setRamGb] = useState<number>(32);
   const [ramType, setRamType] = useState<RamType>("DDR5");
-  const [contextTokens, setContextTokens] = useState<number>(8192);
-  const [modelSlug, setModelSlug] = useState("");
-  const [quant, setQuant] = useState<QuantId>("Q4_K_M");
+  const [contextTokens, setContextTokens] = useState<number>(DEFAULT_CONTEXT_TOKENS);
+  const [modelSlug, setModelSlug] = useState(initialModel?.slug ?? "");
+  const [quant, setQuant] = useState<QuantId>(initialModel ? defaultQuant(initialModel) : "Q4_K_M");
 
   const ram: SystemRamSpec = { capacityGb: ramGb, speedMhz: RAM_SPEED_MTS[ramType], channels: 2 };
   const selectedGpu = uniqueGpus.find((g) => g.id === gpuId) ?? null;
@@ -307,7 +287,9 @@ function ModelsForGpu({
               {rows.map(({ model, rec }) => (
                 <tr key={model.slug} className="border-b border-slate-100 last:border-0">
                   <td className="py-2.5 pr-3">
-                    <div className="font-medium text-slate-800">{model.name}</div>
+                    <Link href={`/local-ai/${model.slug}`} className="font-medium text-slate-800 hover:underline">
+                      {model.name}
+                    </Link>
                     <div className="text-[11px] text-slate-400">
                       {QUANT_LEVELS[rec.quant].label}
                       {model.activeParamsB ? ` · MoE, ${model.activeParamsB}B active` : ""}
@@ -373,7 +355,10 @@ function GpusForModel({
       <Card className="border-slate-200 shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold text-slate-800">
-            {model.name} at {QUANT_LEVELS[quant].label} needs about {formatGb(memory.totalGib)} GB
+            <Link href={`/local-ai/${model.slug}`} className="hover:underline">
+              {model.name}
+            </Link>{" "}
+            at {QUANT_LEVELS[quant].label} needs about {formatGb(memory.totalGib)} GB
           </CardTitle>
           <p className="text-xs text-slate-500">{QUANT_LEVELS[quant].description}</p>
         </CardHeader>

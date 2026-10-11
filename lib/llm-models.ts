@@ -307,3 +307,11 @@ export const LLM_MODELS: LlmModel[] = [
 export function getLlmModel(slug: string): LlmModel | undefined {
   return LLM_MODELS.find((m) => m.slug === slug);
 }
+
+// Q4 is what most people download; pre-quantised models only have their native format.
+export function defaultQuant(model: LlmModel): QuantId {
+  return model.quants.includes("Q4_K_M") ? "Q4_K_M" : model.quants[0];
+}
+
+// Context length used for summaries outside the interactive calculator.
+export const DEFAULT_CONTEXT_TOKENS = 8192;

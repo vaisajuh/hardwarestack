@@ -1,0 +1,20 @@
+export function formatGb(gib: number): string {
+  // Compare after rounding so 9.97 reads "10", not "10.0".
+  return Math.round(gib * 10) < 100 ? gib.toFixed(1) : Math.round(gib).toString();
+}
+
+export function formatSpeed(tokensPerSecond: number | null): string {
+  if (tokensPerSecond === null) return "—";
+  return tokensPerSecond < 10 ? `~${tokensPerSecond.toFixed(1)} tok/s` : `~${Math.round(tokensPerSecond)} tok/s`;
+}
+
+// The scraper occasionally stores the same card twice with different casing ("Super"/"SUPER").
+export function dedupeGpusByName<T extends { modelName: string }>(gpus: T[]): T[] {
+  const seen = new Set<string>();
+  return gpus.filter((g) => {
+    const key = g.modelName.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
