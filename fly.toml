@@ -8,6 +8,8 @@ primary_region = 'arn'
   [build.args]
     # Cloudflare Web Analytics site token (public — it ships in the page HTML)
     NEXT_PUBLIC_CF_BEACON_TOKEN = "921ffb3818074637927a7590427fe5ec"
+    # Amazon.de Associates tracking ID (public — it appears in every affiliate link)
+    NEXT_PUBLIC_AMAZON_AFFILIATE_TAG = "hardwarestack-21"
 
 [http_service]
   internal_port = 3000

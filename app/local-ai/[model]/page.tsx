@@ -7,8 +7,8 @@ import { checkFit, estimateMemory, minVramGb } from "@/lib/ai-fit";
 import { formatGb, formatSpeed } from "@/lib/ai-format";
 import { getGpus } from "@/lib/hardware-queries";
 import { DEFAULT_CONTEXT_TOKENS, LLM_MODELS, QUANT_LEVELS, defaultQuant, getLlmModel } from "@/lib/llm-models";
-import { buildGoogleShoppingUrl } from "@/lib/shopping-links";
 import { cn } from "@/lib/utils";
+import { ShopLink } from "@/components/monetization/ShopLink";
 import type { LlmModel } from "@/types/local-ai";
 
 export const dynamic = "force-dynamic";
@@ -192,14 +192,7 @@ export default async function LocalAiModelPage({ params }: Props) {
                         {gpu.vramGb} GB · {formatSpeed(fit.tokensPerSecond)} at {quantLabel}
                       </p>
                     </div>
-                    <a
-                      href={buildGoogleShoppingUrl(gpu.modelName)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800"
-                    >
-                      Shop <ExternalLink className="h-3 w-3" />
-                    </a>
+                    <ShopLink modelName={gpu.modelName} />
                   </li>
                 ))}
               </ul>

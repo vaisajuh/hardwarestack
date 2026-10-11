@@ -9,7 +9,8 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { checkFit, estimateMemory, minVramGb, recommendQuant } from "@/lib/ai-fit";
 import type { FitResult, SystemRamSpec } from "@/lib/ai-fit";
 import { DEFAULT_CONTEXT_TOKENS, LLM_MODELS, QUANT_LEVELS, defaultQuant, getLlmModel } from "@/lib/llm-models";
-import { buildGoogleShoppingUrl, buildPcPartPickerUrl } from "@/lib/shopping-links";
+import { buildPcPartPickerUrl } from "@/lib/shopping-links";
+import { ShopLink } from "@/components/monetization/ShopLink";
 import { formatGb, formatSpeed } from "@/lib/ai-format";
 import { StatusBadge } from "@/components/local-ai/StatusBadge";
 import type { GpuOption } from "@/types/hardware";
@@ -417,14 +418,7 @@ function GpusForModel({
                   >
                     PCPartPicker <ExternalLink className="h-3 w-3" />
                   </a>
-                  <a
-                    href={buildGoogleShoppingUrl(gpu.modelName)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800"
-                  >
-                    Shop <ExternalLink className="h-3 w-3" />
-                  </a>
+                  <ShopLink modelName={gpu.modelName} />
                 </li>
               ))}
             </ul>

@@ -44,11 +44,12 @@ export default function TermsPage() {
         <section>
           <h2 className="text-base font-semibold text-slate-900 mb-2">4. Affiliate and external links</h2>
           <p>
-            The Site may display links to third-party retailers such as Google Shopping and
-            PCPartPicker. Some links may be affiliate links through which HardwareStack may
-            earn a commission at no additional cost to you. HardwareStack is not responsible
-            for the content, pricing, availability, or accuracy of information on any
-            third-party site.
+            The Site links to third-party retailers such as Amazon, Google Shopping and
+            PCPartPicker. Links to Amazon are affiliate links: as an Amazon Associate,
+            HardwareStack earns from qualifying purchases, at no additional cost to you.
+            Affiliate links never affect the calculator results or which hardware is recommended.
+            HardwareStack is not responsible for the content, pricing, availability, or accuracy
+            of information on any third-party site.
           </p>
         </section>
 

@@ -47,6 +47,7 @@ npx prisma studio         # GUI for the database
 | `REVALIDATE_TOKEN` | Secret for `POST /api/revalidate` cache invalidation endpoint |
 | `ANTHROPIC_API_KEY` | Claude API key — scraper pipeline only, never exposed to the browser |
 | `NEXT_PUBLIC_CF_BEACON_TOKEN` | Cloudflare Web Analytics site token (cookieless visit stats). Inlined at build time — set in `fly.toml` `[build.args]` for production; omit to disable |
+| `NEXT_PUBLIC_AMAZON_AFFILIATE_TAG` | Amazon.de Associates tracking ID; adds tagged Amazon links and the affiliate disclosure. Inlined at build time — set in `fly.toml` `[build.args]`; omit to fall back to Google Shopping |
 
 See `.env.example` for the full list.
 
