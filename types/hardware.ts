@@ -32,6 +32,7 @@ export interface GpuOption {
   modelName: string;
   tier: TierType;
   vramGb: number;
+  memoryBandwidthGbs: number | null;
   rasterScore: number | null;
   retailLinks: RetailLinkOption[];
 }

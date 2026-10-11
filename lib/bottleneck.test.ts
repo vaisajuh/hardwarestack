@@ -22,6 +22,7 @@ const gpu = (overrides: Partial<GpuOption> = {}): GpuOption => ({
   modelName: "Test GPU",
   tier: "MID",
   vramGb: 8,
+  memoryBandwidthGbs: 288,
   rasterScore: 7500,
   retailLinks: [],
   ...overrides,

@@ -44,17 +44,18 @@ model Cpu {
 }
 
 model Gpu {
-  id              String        @id @default(cuid())
-  vendor          Vendor
-  modelName       String        @unique
-  vramGb          Int
-  memoryType      String?
-  architecture    String?
-  tier            ComponentTier
-  rasterScore     Int?
-  retailLinks     RetailLink[]
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id                 String        @id @default(cuid())
+  vendor             Vendor
+  modelName          String        @unique
+  vramGb             Int
+  memoryBandwidthGbs Int? // GB/s; drives local-AI speed estimates
+  memoryType         String?
+  architecture       String?
+  tier               ComponentTier
+  rasterScore        Int?
+  retailLinks        RetailLink[]
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 }
 
 model Ram {

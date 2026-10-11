@@ -37,30 +37,30 @@ const cpus = [
 
 const gpus = [
   // ENTHUSIAST
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4090",    vramGb: 24, memoryType: "GDDR6X", architecture: "Ada Lovelace",  tier: "ENTHUSIAST" as const, rasterScore: 18000 },
-  { vendor: "AMD" as const,    modelName: "AMD Radeon RX 7900 XTX",     vramGb: 24, memoryType: "GDDR6",  architecture: "RDNA 3",        tier: "ENTHUSIAST" as const, rasterScore: 16000 },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4090",    vramGb: 24, memoryBandwidthGbs: 1008, memoryType: "GDDR6X", architecture: "Ada Lovelace",  tier: "ENTHUSIAST" as const, rasterScore: 18000 },
+  { vendor: "AMD" as const,    modelName: "AMD Radeon RX 7900 XTX",     vramGb: 24, memoryBandwidthGbs: 960, memoryType: "GDDR6",  architecture: "RDNA 3",        tier: "ENTHUSIAST" as const, rasterScore: 16000 },
   // ULTRA
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4080 Super", vramGb: 16, memoryType: "GDDR6X", architecture: "Ada Lovelace", tier: "ULTRA" as const, rasterScore: 15000 },
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4080",    vramGb: 16, memoryType: "GDDR6X", architecture: "Ada Lovelace",  tier: "ULTRA" as const,       rasterScore: 14000 },
-  { vendor: "AMD" as const,    modelName: "AMD Radeon RX 7900 XT",      vramGb: 20, memoryType: "GDDR6",  architecture: "RDNA 3",        tier: "ULTRA" as const,       rasterScore: 13500 },
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4070 Ti Super", vramGb: 16, memoryType: "GDDR6X", architecture: "Ada Lovelace", tier: "ULTRA" as const, rasterScore: 13000 },
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3090",    vramGb: 24, memoryType: "GDDR6X", architecture: "Ampere",        tier: "ULTRA" as const,       rasterScore: 11000 },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4080 Super", vramGb: 16, memoryBandwidthGbs: 736, memoryType: "GDDR6X", architecture: "Ada Lovelace", tier: "ULTRA" as const, rasterScore: 15000 },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4080",    vramGb: 16, memoryBandwidthGbs: 717, memoryType: "GDDR6X", architecture: "Ada Lovelace",  tier: "ULTRA" as const,       rasterScore: 14000 },
+  { vendor: "AMD" as const,    modelName: "AMD Radeon RX 7900 XT",      vramGb: 20, memoryBandwidthGbs: 800, memoryType: "GDDR6",  architecture: "RDNA 3",        tier: "ULTRA" as const,       rasterScore: 13500 },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4070 Ti Super", vramGb: 16, memoryBandwidthGbs: 672, memoryType: "GDDR6X", architecture: "Ada Lovelace", tier: "ULTRA" as const, rasterScore: 13000 },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3090",    vramGb: 24, memoryBandwidthGbs: 936, memoryType: "GDDR6X", architecture: "Ampere",        tier: "ULTRA" as const,       rasterScore: 11000 },
   // HIGH
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4070 Super", vramGb: 12, memoryType: "GDDR6X", architecture: "Ada Lovelace", tier: "HIGH" as const, rasterScore: 11000 },
-  { vendor: "AMD" as const,    modelName: "AMD Radeon RX 7800 XT",      vramGb: 16, memoryType: "GDDR6",  architecture: "RDNA 3",        tier: "HIGH" as const,        rasterScore: 9000  },
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4070",    vramGb: 12, memoryType: "GDDR6X", architecture: "Ada Lovelace",  tier: "HIGH" as const,        rasterScore: 9500  },
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3080 Ti", vramGb: 12, memoryType: "GDDR6X", architecture: "Ampere",        tier: "HIGH" as const,        rasterScore: 10500 },
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3080",    vramGb: 10, memoryType: "GDDR6X", architecture: "Ampere",        tier: "HIGH" as const,        rasterScore: 9500  },
-  { vendor: "AMD" as const,    modelName: "AMD Radeon RX 6800 XT",      vramGb: 16, memoryType: "GDDR6",  architecture: "RDNA 2",        tier: "HIGH" as const,        rasterScore: 9000  },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4070 Super", vramGb: 12, memoryBandwidthGbs: 504, memoryType: "GDDR6X", architecture: "Ada Lovelace", tier: "HIGH" as const, rasterScore: 11000 },
+  { vendor: "AMD" as const,    modelName: "AMD Radeon RX 7800 XT",      vramGb: 16, memoryBandwidthGbs: 624, memoryType: "GDDR6",  architecture: "RDNA 3",        tier: "HIGH" as const,        rasterScore: 9000  },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4070",    vramGb: 12, memoryBandwidthGbs: 504, memoryType: "GDDR6X", architecture: "Ada Lovelace",  tier: "HIGH" as const,        rasterScore: 9500  },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3080 Ti", vramGb: 12, memoryBandwidthGbs: 912, memoryType: "GDDR6X", architecture: "Ampere",        tier: "HIGH" as const,        rasterScore: 10500 },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3080",    vramGb: 10, memoryBandwidthGbs: 760, memoryType: "GDDR6X", architecture: "Ampere",        tier: "HIGH" as const,        rasterScore: 9500  },
+  { vendor: "AMD" as const,    modelName: "AMD Radeon RX 6800 XT",      vramGb: 16, memoryBandwidthGbs: 512, memoryType: "GDDR6",  architecture: "RDNA 2",        tier: "HIGH" as const,        rasterScore: 9000  },
   // MID
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4060 Ti", vramGb: 8,  memoryType: "GDDR6",  architecture: "Ada Lovelace",  tier: "MID" as const,         rasterScore: 7500  },
-  { vendor: "AMD" as const,    modelName: "AMD Radeon RX 7700 XT",      vramGb: 12, memoryType: "GDDR6",  architecture: "RDNA 3",        tier: "MID" as const,         rasterScore: 7500  },
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3070 Ti", vramGb: 8,  memoryType: "GDDR6X", architecture: "Ampere",        tier: "MID" as const,         rasterScore: 8000  },
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3070",    vramGb: 8,  memoryType: "GDDR6",  architecture: "Ampere",        tier: "MID" as const,         rasterScore: 7500  },
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3060 Ti", vramGb: 8,  memoryType: "GDDR6",  architecture: "Ampere",        tier: "MID" as const,         rasterScore: 6500  },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4060 Ti", vramGb: 8,  memoryBandwidthGbs: 288, memoryType: "GDDR6",  architecture: "Ada Lovelace",  tier: "MID" as const,         rasterScore: 7500  },
+  { vendor: "AMD" as const,    modelName: "AMD Radeon RX 7700 XT",      vramGb: 12, memoryBandwidthGbs: 432, memoryType: "GDDR6",  architecture: "RDNA 3",        tier: "MID" as const,         rasterScore: 7500  },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3070 Ti", vramGb: 8,  memoryBandwidthGbs: 608, memoryType: "GDDR6X", architecture: "Ampere",        tier: "MID" as const,         rasterScore: 8000  },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3070",    vramGb: 8,  memoryBandwidthGbs: 448, memoryType: "GDDR6",  architecture: "Ampere",        tier: "MID" as const,         rasterScore: 7500  },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 3060 Ti", vramGb: 8,  memoryBandwidthGbs: 448, memoryType: "GDDR6",  architecture: "Ampere",        tier: "MID" as const,         rasterScore: 6500  },
   // ENTRY
-  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4060",    vramGb: 8,  memoryType: "GDDR6",  architecture: "Ada Lovelace",  tier: "ENTRY" as const,       rasterScore: 6000  },
-  { vendor: "AMD" as const,    modelName: "AMD Radeon RX 7600",         vramGb: 8,  memoryType: "GDDR6",  architecture: "RDNA 3",        tier: "ENTRY" as const,       rasterScore: 5500  },
+  { vendor: "NVIDIA" as const, modelName: "NVIDIA GeForce RTX 4060",    vramGb: 8,  memoryBandwidthGbs: 272, memoryType: "GDDR6",  architecture: "Ada Lovelace",  tier: "ENTRY" as const,       rasterScore: 6000  },
+  { vendor: "AMD" as const,    modelName: "AMD Radeon RX 7600",         vramGb: 8,  memoryBandwidthGbs: 288, memoryType: "GDDR6",  architecture: "RDNA 3",        tier: "ENTRY" as const,       rasterScore: 5500  },
 ];
 
 // speedMhz × channels gives the effective bandwidth score used in calculateBottleneck.
@@ -114,7 +114,7 @@ async function main() {
   for (const gpu of gpus) {
     await prisma.gpu.upsert({
       where: { modelName: gpu.modelName },
-      update: {},
+      update: { memoryBandwidthGbs: gpu.memoryBandwidthGbs },
       create: gpu,
     });
   }
