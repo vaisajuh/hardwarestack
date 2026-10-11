@@ -5,6 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { calculateBottleneck } from "@/lib/bottleneck";
+import { buildGoogleShoppingUrl, buildPcPartPickerUrl } from "@/lib/shopping-links";
 import type {
   BottleneckComponent,
   CpuOption,
@@ -22,22 +23,6 @@ interface UpgradeCardProps {
   gpus: GpuOption[];
   rams: RamOption[];
   resolution: Resolution;
-}
-
-function pcPartPickerQuery(name: string): string {
-  return name
-    .replace("Intel Core ", "")         // "i9-14900K"
-    .replace(/AMD Ryzen \d+ /, "")      // "5950X", "7950X"
-    .replace("NVIDIA GeForce ", "")     // "RTX 3090"
-    .replace("AMD Radeon ", "");        // "RX 7900 XTX"
-}
-
-function buildGoogleShoppingUrl(modelName: string): string {
-  return `https://www.google.com/search?q=${encodeURIComponent(modelName)}&tbm=shop`;
-}
-
-function buildPcPartPickerUrl(modelName: string): string {
-  return `https://pcpartpicker.com/search/?q=${encodeURIComponent(pcPartPickerQuery(modelName))}`;
 }
 
 // Find the cheapest upgrade that actually eliminates the bottleneck when
