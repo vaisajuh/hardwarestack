@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
+import Script from "next/script";
 import "./globals.css";
 
 const geist = Geist({
@@ -32,6 +33,9 @@ export const metadata: Metadata = {
     type: "website",
   },
 };
+
+// Cloudflare Web Analytics (cookieless). Token is public; baked in at build time.
+const cfBeaconToken = process.env.NEXT_PUBLIC_CF_BEACON_TOKEN;
 
 export default function RootLayout({
   children,
@@ -96,6 +100,14 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
+
+        {cfBeaconToken && (
+          <Script
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            strategy="afterInteractive"
+            data-cf-beacon={JSON.stringify({ token: cfBeaconToken })}
+          />
+        )}
       </body>
     </html>
   );

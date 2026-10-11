@@ -9,7 +9,7 @@ export default function TermsPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
       <h1 className="text-2xl font-bold text-slate-900 mb-2">Terms of Use</h1>
-      <p className="text-sm text-slate-400 mb-10">Last updated: June 2025</p>
+      <p className="text-sm text-slate-400 mb-10">Last updated: October 2026</p>
 
       <div className="flex flex-col gap-8 text-sm text-slate-700 leading-relaxed">
         <section>
@@ -53,7 +53,26 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-base font-semibold text-slate-900 mb-2">5. Limitation of liability</h2>
+          <h2 className="text-base font-semibold text-slate-900 mb-2">5. Visit statistics</h2>
+          <p>
+            HardwareStack uses Cloudflare Web Analytics to count visits and page views. It
+            does not use cookies, local storage, or fingerprinting, and does not track you
+            across sites. Only aggregated statistics (such as page views, referrers, country,
+            and browser type) are collected. See{" "}
+            <a
+              href="https://www.cloudflare.com/privacypolicy/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-slate-900"
+            >
+              Cloudflare&apos;s privacy policy
+            </a>{" "}
+            for details.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-base font-semibold text-slate-900 mb-2">6. Limitation of liability</h2>
           <p>
             HardwareStack shall not be liable for any loss or damage arising from your use
             of the Site or any purchasing decisions made based on information presented here.
@@ -63,7 +82,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-base font-semibold text-slate-900 mb-2">6. Changes</h2>
+          <h2 className="text-base font-semibold text-slate-900 mb-2">7. Changes</h2>
           <p>
             These terms may be updated at any time. Continued use of the Site after changes
             are posted constitutes acceptance of the revised terms.
@@ -71,7 +90,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-base font-semibold text-slate-900 mb-2">7. Contact</h2>
+          <h2 className="text-base font-semibold text-slate-900 mb-2">8. Contact</h2>
           <p>
             Questions about these terms can be sent to{" "}
             <a
