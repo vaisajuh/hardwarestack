@@ -46,6 +46,7 @@ npx prisma studio         # GUI for the database
 | `DIRECT_URL` | Direct connection string — required for Prisma migrations (bypasses connection poolers) |
 | `REVALIDATE_TOKEN` | Secret for `POST /api/revalidate` cache invalidation endpoint |
 | `ANTHROPIC_API_KEY` | Claude API key — scraper pipeline only, never exposed to the browser |
+| `NEXT_PUBLIC_CF_BEACON_TOKEN` | Cloudflare Web Analytics site token (cookieless visit stats). Inlined at build time — set in `fly.toml` `[build.args]` for production; omit to disable |
 
 See `.env.example` for the full list.
 

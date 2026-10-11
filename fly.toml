@@ -5,6 +5,9 @@ primary_region = 'arn'
   release_command = "node_modules/.bin/prisma migrate deploy"
 
 [build]
+  [build.args]
+    # Cloudflare Web Analytics site token (public — it ships in the page HTML)
+    NEXT_PUBLIC_CF_BEACON_TOKEN = "921ffb3818074637927a7590427fe5ec"
 
 [http_service]
   internal_port = 3000

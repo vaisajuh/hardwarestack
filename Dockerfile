@@ -15,6 +15,10 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# NEXT_PUBLIC_* vars are inlined at build time (passed via fly.toml [build.args])
+ARG NEXT_PUBLIC_CF_BEACON_TOKEN
+ENV NEXT_PUBLIC_CF_BEACON_TOKEN=$NEXT_PUBLIC_CF_BEACON_TOKEN
+
 # Generate Prisma client before building
 RUN npx prisma generate
 RUN npm run build
