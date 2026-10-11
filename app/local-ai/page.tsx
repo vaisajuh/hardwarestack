@@ -12,8 +12,13 @@ export const metadata: Metadata = {
     "Check which local AI models (Llama, Qwen, Gemma, Mistral, DeepSeek, gpt-oss) your GPU can run, how much VRAM each needs, and how fast it will be.",
 };
 
-export default async function LocalAiPage() {
-  const gpus: LocalAiGpu[] = (await getGpus()).map(({ id, modelName, tier, vramGb, memoryBandwidthGbs }) => ({
+interface LocalAiPageProps {
+  searchParams: Promise<{ gpuId?: string; model?: string }>;
+}
+
+export default async function LocalAiPage({ searchParams }: LocalAiPageProps) {
+  const [allGpus, { gpuId, model }] = await Promise.all([getGpus(), searchParams]);
+  const gpus: LocalAiGpu[] = allGpus.map(({ id, modelName, tier, vramGb, memoryBandwidthGbs }) => ({
     id,
     modelName,
     tier,
@@ -33,7 +38,7 @@ export default async function LocalAiPage() {
         </p>
       </div>
 
-      <LocalAiCalculator gpus={gpus} />
+      <LocalAiCalculator gpus={gpus} defaultGpuId={gpuId} defaultModelSlug={model} />
       <LocalAiMethodology />
     </main>
   );

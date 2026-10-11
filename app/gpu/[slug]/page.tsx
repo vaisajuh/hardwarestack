@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { CpuOption, GpuOption } from "@/types/hardware";
 import { GpuPairingTable } from "@/components/detail/GpuPairingTable";
+import { GpuLocalAiSection } from "@/components/local-ai/GpuLocalAiSection";
 
 export const dynamic = "force-dynamic";
 
@@ -178,6 +179,8 @@ export default async function GpuDetailPage({ params }: Props) {
             pairingCpus={pairingCpus as unknown as CpuOption[]}
             gpu={gpu as unknown as GpuOption}
           />
+
+          <GpuLocalAiSection gpu={gpu} />
         </div>
 
         {/* Sidebar */}
