@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { calculateBottleneck } from "@/lib/bottleneck";
+import Link from "next/link";
+import { RESOLUTIONS, calculateBottleneck } from "@/lib/bottleneck";
+import { pairHref } from "@/lib/pair-pages";
 import type {
   CpuOption,
   GpuOption,
@@ -30,7 +32,6 @@ interface Props {
   ) => void;
 }
 
-const RESOLUTIONS: Resolution[] = ["1080p", "1440p", "4K"];
 const TIER_ORDER = ["ENTRY", "MID", "HIGH", "ULTRA", "ENTHUSIAST"] as const;
 const TIER_LABELS: Record<string, string> = {
   ENTRY: "Entry",
@@ -166,6 +167,8 @@ export function BottleneckCalculator({
   const cpuGroups = groupBySocket(cpus);
   const gpuGroups = groupByTier(gpus);
   const ramGroups = groupByTier(compatibleRams);
+
+  const pairUrl = selectedCpu && selectedGpu ? pairHref(selectedCpu, selectedGpu) : null;
 
   const showUpgrade =
     result && result.bottleneckComponent !== "Balanced" && selectedCpu && selectedGpu;
@@ -310,6 +313,14 @@ export function BottleneckCalculator({
                   resolution
                 )}
               </p>
+              {pairUrl && (
+                <Link
+                  href={pairUrl}
+                  className="mt-2 inline-block text-xs text-slate-400 hover:text-slate-700"
+                >
+                  All resolutions for this pair, shareable link →
+                </Link>
+              )}
             </div>
 
             {/* Gauges */}

@@ -17,6 +17,10 @@ export function buildPcPartPickerUrl(modelName: string): string {
 // Affiliate links must be marked as paid so search engines don't treat them as endorsements.
 export const AFFILIATE_REL = "sponsored nofollow noopener noreferrer";
 
+export function hasAffiliateTag(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_AMAZON_AFFILIATE_TAG);
+}
+
 // Tagged amazon.de search link; null when no Associates tag is configured.
 export function buildAmazonSearchUrl(modelName: string): string | null {
   const tag = process.env.NEXT_PUBLIC_AMAZON_AFFILIATE_TAG;

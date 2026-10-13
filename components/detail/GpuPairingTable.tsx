@@ -2,18 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { calculateBottleneck } from "@/lib/bottleneck";
+import { RESOLUTIONS, calculateBottleneck } from "@/lib/bottleneck";
 import { toSlug } from "@/lib/slug";
+import { pairHref } from "@/lib/pair-pages";
+import { BottleneckBadge } from "@/components/detail/BottleneckBadge";
 import type { CpuOption, GpuOption, Resolution } from "@/types/hardware";
 
-const RESOLUTIONS: Resolution[] = ["1080p", "1440p", "4K"];
-
-const BOTTLENECK_COLORS: Record<string, string> = {
-  CPU: "text-red-600 bg-red-50",
-  GPU: "text-slate-600 bg-slate-50",
-  RAM: "text-amber-600 bg-amber-50",
-  Balanced: "text-emerald-600 bg-emerald-50",
-};
 
 interface Props {
   pairingCpus: CpuOption[];
@@ -26,6 +20,7 @@ export function GpuPairingTable({ pairingCpus, gpu }: Props) {
   const pairings = pairingCpus.map((cpu) => ({
     cpu,
     result: calculateBottleneck(cpu, gpu, resolution),
+    href: pairHref(cpu, gpu),
   }));
 
   return (
@@ -70,7 +65,7 @@ export function GpuPairingTable({ pairingCpus, gpu }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {pairings.map(({ cpu, result }) => (
+            {pairings.map(({ cpu, result, href }) => (
               <tr key={cpu.id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-4 py-3 font-medium text-slate-800">
                   <Link
@@ -87,21 +82,17 @@ export function GpuPairingTable({ pairingCpus, gpu }: Props) {
                   {result.gpuUtilization}%
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${BOTTLENECK_COLORS[result.bottleneckComponent]}`}
-                  >
-                    {result.bottleneckComponent === "Balanced"
-                      ? "Balanced"
-                      : `${result.bottleneckComponent} BN`}
-                  </span>
+                  <BottleneckBadge component={result.bottleneckComponent} />
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <Link
-                    href={`/?cpuId=${cpu.id}&gpuId=${gpu.id}`}
-                    className="text-xs text-slate-400 hover:text-slate-700"
-                  >
-                    Full test →
-                  </Link>
+                  {href && (
+                    <Link
+                      href={href}
+                      className="text-xs text-slate-400 hover:text-slate-700"
+                    >
+                      Full test →
+                    </Link>
+                  )}
                 </td>
               </tr>
             ))}
