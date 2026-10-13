@@ -4,6 +4,15 @@ PC hardware bottleneck calculator with upgrade recommendations. Select your CPU,
 
 Live at **[www.hardwarestack.dev](https://www.hardwarestack.dev)**
 
+## Pages
+
+| Route | Content |
+|---|---|
+| `/` | Bottleneck calculator (CPU, GPU, optional RAM, resolution) |
+| `/cpu/[slug]`, `/gpu/[slug]` | Specs and pairing table per component |
+| `/bottleneck/[cpu]-vs-[gpu]` | Static result for one CPU + GPU pair at 1080p, 1440p and 4K, with related pairs. Every scored pair resolves; only pairs at most one tier apart go in the sitemap (`lib/pair-pages.ts`) |
+| `/local-ai`, `/local-ai/[model]` | Local AI calculator and per-model VRAM pages |
+
 ## Stack
 
 - **Next.js 16** (App Router, React Server Components)

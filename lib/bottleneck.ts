@@ -6,6 +6,8 @@ import type {
   Resolution,
 } from "@/types/hardware";
 
+export const RESOLUTIONS: Resolution[] = ["1080p", "1440p", "4K"];
+
 const RESOLUTION_PIXEL_RATIO: Record<Resolution, number> = {
   "1080p": 1.0,
   "1440p": 1.78,
